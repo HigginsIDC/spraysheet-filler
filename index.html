@@ -1,0 +1,1592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Spraysheet Filler</title>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f6f3ec;
+    --surface: #ffffff;
+    --surface-2: #efece3;
+    --ink: #1d2420;
+    --ink-muted: #5c6660;
+    --accent: #2f5233;
+    --accent-ink: #ffffff;
+    --accent-soft: #e3ead9;
+    --amber: #b6791f;
+    --amber-soft: #f6e7cd;
+    --border: #ddd6c6;
+    --danger: #a13a3a;
+    --danger-soft: #f5dfdd;
+    --shadow: 0 1px 2px rgba(30,25,10,0.06), 0 6px 18px rgba(30,25,10,0.05);
+    font-variant-numeric: tabular-nums;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141815;
+      --surface: #1c2220;
+      --surface-2: #232a26;
+      --ink: #eceae2;
+      --ink-muted: #9aa39c;
+      --accent: #7fb583;
+      --accent-ink: #0c1410;
+      --accent-soft: #223228;
+      --amber: #e0aa54;
+      --amber-soft: #3a2f18;
+      --border: #333c36;
+      --danger: #e28080;
+      --danger-soft: #3a2323;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141815;
+    --surface: #1c2220;
+    --surface-2: #232a26;
+    --ink: #eceae2;
+    --ink-muted: #9aa39c;
+    --accent: #7fb583;
+    --accent-ink: #0c1410;
+    --accent-soft: #223228;
+    --amber: #e0aa54;
+    --amber-soft: #3a2f18;
+    --border: #333c36;
+    --danger: #e28080;
+    --danger-soft: #3a2323;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    padding-inline: 16px;
+    padding-block: 20px 60px;
+    max-width: 1180px;
+    margin: 0 auto;
+    line-height: 1.45;
+  }
+  h1, h2, h3 { font-family: 'Barlow Semi Condensed', system-ui, sans-serif; font-weight: 700; text-wrap: balance; margin: 0; }
+  .eyebrow {
+    font-family: 'Barlow Semi Condensed', system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-block: 4px 22px;
+    border-bottom: 3px solid var(--accent);
+    margin-bottom: 24px;
+  }
+  .hero h1 { font-size: clamp(26px, 4vw, 34px); }
+  .hero p { color: var(--ink-muted); max-width: 62ch; margin: 4px 0 0; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card > h2 {
+    font-size: 20px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 14px;
+    font-family: 'Barlow Semi Condensed', sans-serif;
+    font-weight: 700;
+    flex: none;
+  }
+  .card-sub { color: var(--ink-muted); font-size: 14px; margin: 0 0 16px; max-width: 70ch; }
+
+  textarea {
+    width: 100%;
+    min-height: 140px;
+    box-sizing: border-box;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--ink);
+    resize: vertical;
+  }
+  textarea:focus, input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .btn {
+    font-family: 'Barlow Semi Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    border: none;
+    border-radius: 7px;
+    padding: 10px 18px;
+    cursor: pointer;
+    background: var(--accent);
+    color: var(--accent-ink);
+    transition: filter 0.15s ease, transform 0.1s ease;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
+  .btn.secondary { background: var(--surface-2); color: var(--ink); border: 1px solid var(--border); }
+  .btn.big { padding: 14px 26px; font-size: 17px; }
+  .row-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 500;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--ink-muted);
+  }
+  .pill.ok { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .pill.warn { background: var(--amber-soft); color: var(--amber); border-color: transparent; }
+  .pill.info { background: var(--danger-soft); color: var(--danger); border-color: transparent; cursor: help; }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px 16px;
+  }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label {
+    font-size: 12px;
+    color: var(--ink-muted);
+    font-weight: 500;
+  }
+  .field .hint { font-size: 11px; color: var(--ink-muted); opacity: 0.8; }
+  input[type=text], input[type=number], input[type=date], select {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13.5px;
+    padding: 7px 9px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  input[readonly] { background: var(--surface-2); color: var(--ink-muted); }
+  .field.derived label::after { content: " (from BJTS)"; color: var(--accent); opacity: 0.8; }
+  .field.manual label::after { content: " — enter manually"; color: var(--amber); opacity: 0.9; }
+
+  .coat-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .coat-tab {
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--ink);
+    border-radius: 7px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-family: 'Barlow Semi Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .coat-tab.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+  table.runs {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+  table.runs th, table.runs td {
+    padding: 6px 7px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+  table.runs thead th {
+    position: sticky; top: 0;
+    background: var(--surface-2);
+    font-family: 'Barlow Semi Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--ink-muted);
+    z-index: 1;
+  }
+  table.runs tbody tr.excluded { opacity: 0.4; }
+  table.runs tbody tr.anomaly td:first-child { box-shadow: inset 3px 0 0 var(--amber); }
+  table.runs input[type=text], table.runs input[type=number] {
+    width: 64px;
+    padding: 4px 5px;
+    font-size: 12.5px;
+  }
+  table.runs input.rp { width: 56px; }
+  table.runs input.narrow { width: 44px; }
+  table.runs td.computed { color: var(--ink-muted); font-family: 'IBM Plex Mono', monospace; }
+  table.runs td.computed.bad { color: var(--danger); }
+
+  .totals-strip {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding: 12px 16px;
+    background: var(--surface-2);
+    border-radius: 8px;
+  }
+  .totals-strip div { display: flex; flex-direction: column; gap: 2px; }
+  .totals-strip .label { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .totals-strip .value { font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 500; }
+
+  .note {
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 12px;
+  }
+  .note.amber { background: var(--amber-soft); color: var(--amber); }
+  .note strong { color: inherit; }
+
+  .status-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 13.5px;
+    min-height: 20px;
+  }
+  .status-line.ok { color: var(--accent); }
+  .status-line.err { color: var(--danger); }
+
+  footer { text-align: center; color: var(--ink-muted); font-size: 12px; margin-top: 30px; }
+
+  [hidden] { display: none !important; }
+
+  @media (max-width: 520px) {
+    .card { padding: 14px; }
+    .totals-strip { gap: 14px; }
+  }
+</style>
+
+<div class="hero">
+  <span class="eyebrow">BJTS &rarr; Higgins Spraysheet</span>
+  <h1>Spraysheet Filler</h1>
+  <p>Upload the Print View PDF you already download from BJTS (or paste the Job Summary page), pick a coat and day, check over the runs, and download a filled copy of your Spraysheet — Length, Area, Tank Dip, Litres, Spray Temp and Target Rate already in, formulas intact.</p>
+</div>
+
+<div class="card">
+  <h2><span class="step-num">1</span> Get the BJTS report in</h2>
+  <p class="card-sub">Upload the "Print View" PDF you already download from BJTS's Job Summary page — it's the easiest option, and it carries a couple of things the copy-paste doesn't (a real time for each run, and the coat number tagged on every row). If you'd rather, you can still paste the page's text instead.</p>
+  <div class="row-actions" style="margin-bottom:14px;">
+    <label class="btn" for="pdfInput" style="cursor:pointer;">Upload Print View PDF…</label>
+    <input type="file" id="pdfInput" accept="application/pdf,.pdf" style="display:none;">
+    <span id="pdfFileName" style="color:var(--ink-muted); font-size:13px;"></span>
+  </div>
+  <details id="pasteDetails">
+    <summary style="cursor:pointer; color:var(--ink-muted); font-size:13.5px; margin-bottom:10px;">Or paste the Job Summary page text instead</summary>
+    <p class="card-sub">Open the job on BJTS's Job Summary page, select everything on the page (the job details, both coat blocks, and the run tables — Ctrl/Cmd+A works fine) and paste it below. Truncated cells like <code>11/09/20...</code> or <code>38.4700...</code> are fine, the fields this tool needs aren't cut off.</p>
+    <textarea id="pasteBox" placeholder="Paste the Job Summary page content here…"></textarea>
+    <div class="row-actions" style="margin-top:10px;">
+      <button class="btn secondary" id="parseBtn">Parse pasted text</button>
+      <button class="btn secondary" id="sampleBtn" hidden>Try it with sample data</button>
+    </div>
+  </details>
+  <span class="status-line" id="parseStatus"></span>
+</div>
+
+<div id="afterParse" hidden>
+
+  <div class="card">
+    <h2><span class="step-num">2</span> Job, coat &amp; day</h2>
+    <div class="field-grid" style="margin-bottom:14px;">
+      <div class="field"><label>Job</label><input type="text" id="jobSummaryLine" readonly></div>
+      <div class="field"><label>Contract</label><input type="text" id="contractSummaryLine" readonly></div>
+    </div>
+    <p class="card-sub" style="margin-top:-4px;" id="coatTabsNote">BJTS numbers these Coat 1 / Coat 2 — that's what picking a tab below means. Which one is actually the top or bottom coat on this job is your call; the tool doesn't guess it.</p>
+    <div class="coat-tabs" id="coatTabs"></div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Date to fill in</label>
+        <select id="dateSelect"></select>
+      </div>
+      <div class="field">
+        <label>Include PRE-SPRAY / FOG runs</label>
+        <select id="includeFog">
+          <option value="no" selected>No — these are prep passes, not coat rows</option>
+          <option value="yes">Yes — include them too</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">3</span> Header details</h2>
+    <p class="card-sub">Pulled from BJTS where possible. Anything BJTS doesn't track (kerosene/AGO/adhesion rates, operator, weather, docket, site no.) needs a manual line — same as filling the sheet by hand.</p>
+    <div class="field-grid" id="headerFields"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">4</span> Runs for this coat &amp; day</h2>
+    <p class="card-sub" id="runOrderNote">Runs are ordered by Run Number — the sequence BJTS logged them in, which is the order he actually sprayed, since this report doesn't carry a time-of-day field. RP, Direction, Chip Grade and Source aren't in BJTS's data — add them per row, or use the "apply to all" boxes below for Chip Grade/Source if one applies to the whole day.</p>
+    <div class="row-actions" style="margin-bottom:12px;">
+      <div class="field" style="flex-direction:row; align-items:center; gap:6px;">
+        <label style="margin:0;">Chip grade, all rows</label>
+        <input type="text" id="bulkGrade" style="width:110px;">
+        <button class="btn secondary" id="applyGrade" style="padding:6px 10px; font-size:13px;">Apply</button>
+      </div>
+      <div class="field" style="flex-direction:row; align-items:center; gap:6px;">
+        <label style="margin:0;">Chip source, all rows</label>
+        <input type="text" id="bulkSource" style="width:110px;">
+        <button class="btn secondary" id="applySource" style="padding:6px 10px; font-size:13px;">Apply</button>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="runs">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Run</th>
+            <th>Position</th>
+            <th>RP</th>
+            <th>Dir.</th>
+            <th>Length</th>
+            <th>Width*</th>
+            <th>Area</th>
+            <th>Tank start</th>
+            <th>Tank finish</th>
+            <th>Litres</th>
+            <th>Display L</th>
+            <th>Spray temp</th>
+            <th>Target rate</th>
+            <th>Actual rate*</th>
+            <th>Chip grade</th>
+            <th>Chip source</th>
+            <th>Flags</th>
+          </tr>
+        </thead>
+        <tbody id="runRows"></tbody>
+      </table>
+    </div>
+    <div class="totals-strip">
+      <div><span class="label">Rows on sheet</span><span class="value" id="totRows">0</span></div>
+      <div><span class="label">Total area (sq.m)</span><span class="value" id="totArea">0</span></div>
+      <div><span class="label">Total bitumen (L)</span><span class="value" id="totLitres">0</span></div>
+      <div id="finalGradeWrap" hidden><span class="label">Final grade</span><select id="finalGrade" style="padding:3px 6px; font-size:13px;"></select></div>
+      <div><span class="label">Final area (sq.m)</span><span class="value" id="totFinalArea">0</span></div>
+      <div><span class="label">Actual spray rate (L/m²)</span><span class="value" id="totRate">0</span></div>
+    </div>
+    <p class="note">* Width and Actual Rate are calculated by the Spraysheet's own formulas (Area÷Length and Litres÷Area) — shown here as a preview only, not written to the file.</p>
+    <p class="note">Actual spray rate = total bitumen ÷ <strong>final area</strong>. On a two-coat day, pick which grade's area is the final sealed area (defaults to the top coat, the last one sprayed). The sheet shows each grade's area separately and has the same Final grade dropdown, so you can change it in Excel later too.</p>
+    <div class="note" id="residPanel">
+      <strong>Residual binder @ 15°C</strong> — NZTA P18 temperature correction. Goes into hidden columns U–X on the sheet (next to the hidden Time/Notes), not the printed layout.
+      <div class="row-actions" style="margin:8px 0 6px; gap:14px;">
+        <div class="field" style="flex-direction:row; align-items:center; gap:6px;">
+          <label for="ebcInput" style="margin:0;">EBC %</label>
+          <input type="text" id="ebcInput" placeholder="from batch docket / COA" style="width:170px;">
+        </div>
+        <div class="field" style="flex-direction:row; align-items:center; gap:6px;">
+          <label for="densityInput" style="margin:0;">Binder density (L/tonne)</label>
+          <input type="text" id="densityInput" value="960" style="width:70px;">
+        </div>
+      </div>
+      <div id="residOut" style="font-family:'IBM Plex Mono', monospace; font-size:12.5px; line-height:1.6;"></div>
+    </div>
+    <p class="note">Flags: <span class="pill warn">hand-spray?</span> means the run number jumped by more than one — a gap like that usually means a section was sprayed by hand and never logged to BJTS. <span class="pill info">new load?</span> means this run's tank start volume doesn't match the previous run's finish volume — the tanker was probably topped up or swapped between these two runs. <span class="pill warn">check manually</span> means BJTS didn't record a real time or temperature for this run at all — it's grouped under "No time recorded" above rather than a real day, since this tool can't guess which day it belongs to. All three are guesses or gaps worth a quick look, not certainties — hover a pill for the details.</p>
+    <p class="note" id="rowsNote">The Spraysheet now sizes itself to fit — every ticked row here gets a row on the sheet, plus 5 blank rows after them in case you need to add anything by hand. Each row also carries its real time (from the PDF) and any flag text in two extra columns, hidden by default — right-click the column headers in Excel and "Unhide" if you want to see them.</p>
+    <p class="note" id="capNote" hidden></p>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">5</span> Get the filled Spraysheet</h2>
+    <div class="row-actions">
+      <button class="btn big" id="generateBtn">Fill &amp; save Spraysheet.xlsx</button>
+      <span class="status-line" id="genStatus"></span>
+    </div>
+    <p class="note amber">After it opens: press <strong>Ctrl+Alt+F9</strong> (Windows Excel) once — <strong>Calculate Now</strong> on the Formulas tab does the same thing — to refresh Width, Application Rate and the totals. This is a one-off step any tool that writes values in in bulk needs; Excel does it for you on every edit after that.</p>
+  </div>
+
+</div>
+
+<footer>Built for Higgins BOP daily spraysheets · nothing pasted here leaves your browser</footer>
+
+<script>const TEMPLATE_B64 = "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";</script>
+<script>!function(f){typeof module!='undefined'&&typeof exports=='object'?module.exports=f():typeof define!='undefined'&&define.amd?define(f):(typeof self!='undefined'?self:this).fflate=f()}(function(){var _e={};"use strict";_e.deflate=zt,_e.deflateSync=kt,_e.inflate=At,_e.inflateSync=Tt,_e.gzip=It,_e.compress=It,_e.gzipSync=Ut,_e.compressSync=Ut,_e.gunzip=Zt,_e.gunzipSync=qt,_e.zlib=Lt,_e.zlibSync=Bt,_e.unzlib=Nt,_e.unzlibSync=Pt,_e.gzip=It,_e.compress=It,_e.decompress=Jt,_e.decompressSync=Kt,_e.strToU8=nn,_e.strFromU8=rn,_e.zip=dn,_e.zipSync=gn,_e.unzip=zn,_e.unzipSync=kn;var t=(typeof module!='undefined'&&typeof exports=='object'?function(_f){"use strict";var e,r,t,n=";var __w=require('worker_threads');__w.parentPort.on('message',function(m){onmessage({data:m})}),postMessage=function(m,t){__w.parentPort.postMessage(m,t)},close=process.exit;self=global";try{e=require("worker_threads"),r=e.Worker,t=e.isMarkedAsUntransferable}catch(e){}exports.default=r?function(e,o,a,s,u){var i=!1,l=new r(e+n,{eval:!0}).on("error",function(e){return u(e,null)}).on("message",function(e){return u(null,e)}).on("exit",function(e){e&&!i&&u(Error("exited with code "+e),null)});return t&&(s=s.filter(function(e){return!t(e)})),l.postMessage(a,s),l.terminate=function(){return i=!0,r.prototype.terminate.call(l)},l}:function(e,r,t,n,o){setImmediate(function(){return o(Error("async operations unsupported - update to Node 12+ (or Node 10-11 with the --experimental-worker CLI flag)"),null)});var a=function(){};return{terminate:a,postMessage:a}};return _f}:function(_f){"use strict";var e={};_f.default=function(r,t,s,a,n){var o=new Worker(e[t]||(e[t]=URL.createObjectURL(new Blob([r+';addEventListener("error",function(e){e=e.error;postMessage({$e$:[e.message,e.code,e.stack]})})'],{type:"text/javascript"}))));return o.onmessage=function(e){var r=e.data,t=r.$e$;if(t){var s=Error(t[0]);s.code=t[1],s.stack=t[2],n(s,null)}else n(null,r)},o.postMessage(s,a),o};return _f})({}),n=Uint8Array,r=Uint16Array,i=Int32Array,e=new n([0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,0,0,0]),o=new n([0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,0,0]),s=new n([16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15]),a=function(t,n){for(var e=new r(31),o=0;o<31;++o)e[o]=n+=1<<t[o-1];var s=new i(e[30]);for(o=1;o<30;++o)for(var a=e[o];a<e[o+1];++a)s[a]=a-e[o]<<5|o;return{b:e,r:s}},u=a(e,2),h=u.b,f=u.r;h[28]=258,f[258]=28;for(var c=a(o,0),l=c.b,p=c.r,v=new r(32768),d=0;d<32768;++d){var g=(43690&d)>>1|(21845&d)<<1;v[d]=((65280&(g=(61680&(g=(52428&g)>>2|(13107&g)<<2))>>4|(3855&g)<<4))>>8|(255&g)<<8)>>1}var y=function(t,n,i){for(var e=t.length,o=0,s=new r(n);o<e;++o)t[o]&&++s[t[o]-1];var a,u=new r(n);for(o=1;o<n;++o)u[o]=u[o-1]+s[o-1]<<1;if(i){a=new r(1<<n);var h=15-n;for(o=0;o<e;++o)if(t[o])for(var f=o<<4|t[o],c=n-t[o],l=u[t[o]-1]++<<c,p=l|(1<<c)-1;l<=p;++l)a[v[l]>>h]=f}else for(a=new r(e),o=0;o<e;++o)t[o]&&(a[o]=v[u[t[o]-1]++]>>15-t[o]);return a},m=new n(288);for(d=0;d<144;++d)m[d]=8;for(d=144;d<256;++d)m[d]=9;for(d=256;d<280;++d)m[d]=7;for(d=280;d<288;++d)m[d]=8;var b=new n(32);for(d=0;d<32;++d)b[d]=5;var w=y(m,9,0),x=y(m,9,1),z=y(b,5,0),k=y(b,5,1),M=function(t){for(var n=t[0],r=1;r<t.length;++r)t[r]>n&&(n=t[r]);return n},S=function(t,n,r){var i=n/8|0;return(t[i]|t[i+1]<<8)>>(7&n)&r},A=function(t,n){var r=n/8|0;return(t[r]|t[r+1]<<8|t[r+2]<<16)>>(7&n)},T=function(t){return(t+7)/8|0},D=function(t,r,i){return(null==r||r<0)&&(r=0),(null==i||i>t.length)&&(i=t.length),new n(t.subarray(r,i))};_e.FlateErrorCode={UnexpectedEOF:0,InvalidBlockType:1,InvalidLengthLiteral:2,InvalidDistance:3,StreamFinished:4,NoStreamHandler:5,InvalidHeader:6,NoCallback:7,InvalidUTF8:8,ExtraFieldTooLong:9,InvalidDate:10,FilenameTooLong:11,StreamFinishing:12,InvalidZipData:13,UnknownCompressionMethod:14};var C=["unexpected EOF","invalid block type","invalid length/literal","invalid distance","stream finished","no stream handler",,"no callback","invalid UTF-8 data","extra field too long","date not in range 1980-2099","filename too long","stream finishing","invalid zip data"],I=function(t,n,r){var i=Error(n||C[t]);if(i.code=t,Error.captureStackTrace&&Error.captureStackTrace(i,I),!r)throw i;return i},U=function(t,r,i,a){var u=t.length,f=a?a.length:0;if(!u||r.f&&!r.l)return i||new n(0);var c=!i,p=c||2!=r.i,v=r.i;c&&(i=new n(3*u));var d=function(t){var r=i.length;if(t>r){var e=new n(Math.max(2*r,t));e.set(i),i=e}},g=r.f||0,m=r.p||0,b=r.b||0,w=r.l,z=r.d,C=r.m,U=r.n,F=8*u;do{if(!w){g=S(t,m,1);var E=S(t,m+1,3);if(m+=3,!E){var Z=t[(Y=T(m)+4)-4]|t[Y-3]<<8,q=Y+Z;if(q>u){v&&I(0);break}p&&d(b+Z),i.set(t.subarray(Y,q),b),r.b=b+=Z,r.p=m=8*q,r.f=g;continue}if(1==E)w=x,z=k,C=9,U=5;else if(2==E){var O=S(t,m,31)+257,G=S(t,m+10,15)+4,L=O+S(t,m+5,31)+1;m+=14;for(var B=new n(L),H=new n(19),j=0;j<G;++j)H[s[j]]=S(t,m+3*j,7);m+=3*G;var N=M(H),P=(1<<N)-1,V=y(H,N,1);for(j=0;j<L;){var Y,J=V[S(t,m,P)];if(m+=15&J,(Y=J>>4)<16)B[j++]=Y;else{var K=0,Q=0;for(16==Y?(Q=3+S(t,m,3),m+=2,K=B[j-1]):17==Y?(Q=3+S(t,m,7),m+=3):18==Y&&(Q=11+S(t,m,127),m+=7);Q--;)B[j++]=K}}var R=B.subarray(0,O),W=B.subarray(O);C=M(R),U=M(W),w=y(R,C,1),z=y(W,U,1)}else I(1);if(m>F){v&&I(0);break}}p&&d(b+131072);for(var X=(1<<C)-1,$=(1<<U)-1,_=m;;_=m){var tt=(K=w[A(t,m)&X])>>4;if((m+=15&K)>F){v&&I(0);break}if(K||I(2),tt<256)i[b++]=tt;else{if(256==tt){_=m,w=null;break}var nt=tt-254;tt>264&&(nt=S(t,m,(1<<(et=e[j=tt-257]))-1)+h[j],m+=et);var rt=z[A(t,m)&$],it=rt>>4;if(rt||I(3),m+=15&rt,W=l[it],it>3){var et=o[it];W+=A(t,m)&(1<<et)-1,m+=et}if(m>F){v&&I(0);break}p&&d(b+131072);var ot=b+nt;if(b<W){var st=f-W,at=Math.min(W,ot);for(st+b<0&&I(3);b<at;++b)i[b]=a[st+b]}for(;b<ot;++b)i[b]=i[b-W]}}r.l=w,r.p=_,r.b=b,r.f=g,w&&(g=1,r.m=C,r.d=z,r.n=U)}while(!g);return b!=i.length&&c?D(i,0,b):i.subarray(0,b)},F=function(t,n,r){var i=n/8|0;t[i]|=r<<=7&n,t[i+1]|=r>>8},E=function(t,n,r){var i=n/8|0;t[i]|=r<<=7&n,t[i+1]|=r>>8,t[i+2]|=r>>16},Z=function(t,i){for(var e=[],o=0;o<t.length;++o)t[o]&&e.push({s:o,f:t[o]});var s=e.length,a=e.slice();if(!s)return{t:j,l:0};if(1==s){var u=new n(e[0].s+1);return u[e[0].s]=1,{t:u,l:1}}e.sort(function(t,n){return t.f-n.f}),e.push({s:-1,f:25001});var h=e[0],f=e[1],c=0,l=1,p=2;for(e[0]={s:-1,f:h.f+f.f,l:h,r:f};l!=s-1;)h=e[e[c].f<e[p].f?c++:p++],f=e[c!=l&&e[c].f<e[p].f?c++:p++],e[l++]={s:-1,f:h.f+f.f,l:h,r:f};var v=a[0].s;for(o=1;o<s;++o)a[o].s>v&&(v=a[o].s);var d=new r(v+1),g=q(e[l-1],d,0);if(g>i){o=0;var y=0,m=g-i,b=1<<m;for(a.sort(function(t,n){return d[n.s]-d[t.s]||t.f-n.f});o<s;++o){var w=a[o].s;if(!(d[w]>i))break;y+=b-(1<<g-d[w]),d[w]=i}for(y>>=m;y>0;){var x=a[o].s;d[x]<i?y-=1<<i-d[x]++-1:++o}for(;o>=0&&y;--o){var z=a[o].s;d[z]==i&&(--d[z],++y)}g=i}return{t:new n(d),l:g}},q=function(t,n,r){return-1==t.s?Math.max(q(t.l,n,r+1),q(t.r,n,r+1)):n[t.s]=r},O=function(t){for(var n=t.length;n&&!t[--n];);for(var i=new r(++n),e=0,o=t[0],s=1,a=function(t){i[e++]=t},u=1;u<=n;++u)if(t[u]==o&&u!=n)++s;else{if(!o&&s>2){for(;s>138;s-=138)a(32754);s>2&&(a(s>10?s-11<<5|28690:s-3<<5|12305),s=0)}else if(s>3){for(a(o),--s;s>6;s-=6)a(8304);s>2&&(a(s-3<<5|8208),s=0)}for(;s--;)a(o);s=1,o=t[u]}return{c:i.subarray(0,e),n:n}},G=function(t,n){for(var r=0,i=0;i<n.length;++i)r+=t[i]*n[i];return r},L=function(t,n,r){var i=r.length,e=T(n+2);t[e]=255&i,t[e+1]=i>>8,t[e+2]=255^t[e],t[e+3]=255^t[e+1];for(var o=0;o<i;++o)t[e+o+4]=r[o];return 8*(e+4+i)},B=function(t,n,i,a,u,h,f,c,l,p,v){F(n,v++,i),++u[256];for(var d=Z(u,15),g=d.t,x=d.l,k=Z(h,15),M=k.t,S=k.l,A=O(g),T=A.c,D=A.n,C=O(M),I=C.c,U=C.n,q=new r(19),B=0;B<T.length;++B)++q[31&T[B]];for(B=0;B<I.length;++B)++q[31&I[B]];for(var H=Z(q,7),j=H.t,N=H.l,P=19;P>4&&!j[s[P-1]];--P);var V,Y,J,K,Q=p+5<<3,R=G(u,m)+G(h,b)+f,W=G(u,g)+G(h,M)+f+14+3*P+G(q,j)+2*q[16]+3*q[17]+7*q[18];if(l>=0&&Q<=R&&Q<=W)return L(n,v,t.subarray(l,l+p));if(F(n,v,1+(W<R)),v+=2,W<R){V=y(g,x,0),Y=g,J=y(M,S,0),K=M;var X=y(j,N,0);for(F(n,v,D-257),F(n,v+5,U-1),F(n,v+10,P-4),v+=14,B=0;B<P;++B)F(n,v+3*B,j[s[B]]);v+=3*P;for(var $=[T,I],_=0;_<2;++_){var tt=$[_];for(B=0;B<tt.length;++B)F(n,v,X[rt=31&tt[B]]),v+=j[rt],rt>15&&(F(n,v,tt[B]>>5&127),v+=tt[B]>>12)}}else V=w,Y=m,J=z,K=b;for(B=0;B<c;++B){var nt=a[B];if(nt>255){var rt;E(n,v,V[257+(rt=nt>>18&31)]),v+=Y[rt+257],rt>7&&(F(n,v,nt>>23&31),v+=e[rt]);var it=31&nt;E(n,v,J[it]),v+=K[it],it>3&&(E(n,v,nt>>5&8191),v+=o[it])}else E(n,v,V[nt]),v+=Y[nt]}return E(n,v,V[256]),v+Y[256]},H=new i([65540,131080,131088,131104,262176,1048704,1048832,2114560,2117632]),j=new n(0),N=function(t,s,a,u,h,c){var l=c.z||t.length,v=new n(u+l+5*(1+Math.ceil(l/7e3))+h),d=v.subarray(u,v.length-h),g=c.l,y=7&(c.r||0);if(s){y&&(d[0]=c.r>>3);for(var m=H[s-1],b=m>>13,w=8191&m,x=(1<<a)-1,z=c.p||new r(32768),k=c.h||new r(x+1),M=Math.ceil(a/3),S=2*M,A=function(n){return(t[n]^t[n+1]<<M^t[n+2]<<S)&x},C=new i(25e3),I=new r(288),U=new r(32),F=0,E=0,Z=c.i||0,q=0,O=c.w||0,G=0;Z+2<l;++Z){var j=A(Z),N=32767&Z,P=k[j];if(z[N]=P,k[j]=N,O<=Z){var V=l-Z;if((F>7e3||q>24576)&&(V>423||!g)){y=B(t,d,0,C,I,U,E,q,G,Z-G,y),q=F=E=0,G=Z;for(var Y=0;Y<286;++Y)I[Y]=0;for(Y=0;Y<30;++Y)U[Y]=0}var J=2,K=0,Q=w,R=N-P&32767;if(V>2&&j==A(Z-R))for(var W=Math.min(b,V)-1,X=Math.min(32767,Z),$=Math.min(258,V);R<=X&&--Q&&N!=P;){if(t[Z+J]==t[Z+J-R]){for(var _=0;_<$&&t[Z+_]==t[Z+_-R];++_);if(_>J){if(J=_,K=R,_>W)break;var tt=Math.min(R,_-2),nt=0;for(Y=0;Y<tt;++Y){var rt=Z-R+Y&32767,it=rt-z[rt]&32767;it>nt&&(nt=it,P=rt)}}}R+=(N=P)-(P=z[N])&32767}if(K){C[q++]=268435456|f[J]<<18|p[K];var et=31&f[J],ot=31&p[K];E+=e[et]+o[ot],++I[257+et],++U[ot],O=Z+J,++F}else C[q++]=t[Z],++I[t[Z]]}}for(Z=Math.max(Z,O);Z<l;++Z)C[q++]=t[Z],++I[t[Z]];y=B(t,d,g,C,I,U,E,q,G,Z-G,y),g||(c.r=7&y|d[y/8|0]<<3,y-=7,c.h=k,c.p=z,c.i=Z,c.w=O)}else{for(Z=c.w||0;Z<l+g;Z+=65535){var st=Z+65535;st>=l&&(d[y/8|0]=g,st=l),y=L(d,y+1,t.subarray(Z,st))}c.i=l}return D(v,0,u+T(y)+h)},P=function(){for(var t=new Int32Array(256),n=0;n<256;++n){for(var r=n,i=9;--i;)r=(1&r&&-306674912)^r>>>1;t[n]=r}return t}(),V=function(){var t=-1;return{p:function(n){for(var r=t,i=0;i<n.length;++i)r=P[255&r^n[i]]^r>>>8;t=r},d:function(){return~t}}},Y=function(){var t=1,n=0;return{p:function(r){for(var i=t,e=n,o=0|r.length,s=0;s!=o;){for(var a=Math.min(s+2655,o);s<a;++s)e+=i+=r[s];i=(65535&i)+15*(i>>16),e=(65535&e)+15*(e>>16)}t=i,n=e},d:function(){return(255&(t%=65521))<<24|(65280&t)<<8|(255&(n%=65521))<<8|n>>8}}},J=function(t,r,i,e,o){if(!o&&(o={l:1},r.dictionary)){var s=r.dictionary.subarray(-32768),a=new n(s.length+t.length);a.set(s),a.set(t,s.length),t=a,o.w=s.length}return N(t,null==r.level?6:r.level,null==r.mem?o.l?Math.ceil(1.5*Math.max(8,Math.min(13,Math.log(t.length)))):20:12+r.mem,i,e,o)},K=function(t,n){var r={};for(var i in t)r[i]=t[i];for(var i in n)r[i]=n[i];return r},Q=function(t,n,r){for(var i=t(),e=""+t,o=e.slice(e.indexOf("[")+1,e.lastIndexOf("]")).replace(/\s+/g,"").split(","),s=0;s<i.length;++s){var a=i[s],u=o[s];if("function"==typeof a){n+=";"+u+"=";var h=""+a;if(a.prototype)if(-1!=h.indexOf("[native code]")){var f=h.indexOf(" ",8)+1;n+=h.slice(f,h.indexOf("(",f))}else for(var c in n+=h,a.prototype)n+=";"+u+".prototype."+c+"="+a.prototype[c];else n+=h}else r[u]=a}return n},R=[],W=function(t){var n=[];for(var r in t)t[r].buffer&&n.push((t[r]=new t[r].constructor(t[r])).buffer);return n},X=function(n,r,i,e){if(!R[i]){for(var o="",s={},a=n.length-1,u=0;u<a;++u)o=Q(n[u],o,s);R[i]={c:Q(n[a],o,s),e:s}}var h=K({},R[i].e);return(0,t.default)(R[i].c+";onmessage=function(e){for(var k in e.data)self[k]=e.data[k];onmessage="+r+"}",i,h,W(h),e)},$=function(){return[n,r,i,e,o,s,h,l,x,k,v,C,y,M,S,A,T,D,I,U,Tt,et,ot]},_=function(){return[n,r,i,e,o,s,f,p,w,m,z,b,v,H,j,y,F,E,Z,q,O,G,L,B,T,D,N,J,kt,et]},tt=function(){return[pt,gt,lt,V,P]},nt=function(){return[vt,dt]},rt=function(){return[yt,lt,Y]},it=function(){return[mt]},et=function(t){return postMessage(t,[t.buffer])},ot=function(t){return t&&{out:t.size&&new n(t.size),dictionary:t.dictionary}},st=function(t,n,r,i,e,o){var s=X(r,i,e,function(t,n){s.terminate(),o(t,n)});return s.postMessage([t,n],n.consume?[t.buffer]:[]),function(){s.terminate()}},at=function(t){return t.ondata=function(t,n){return postMessage([t,n],[t.buffer])},function(n){n.data[0]?(t.push(n.data[0],n.data[1]),postMessage([n.data[0].length])):t.flush(n.data[1])}},ut=function(t,n,r,i,e,o,s){var a,u=X(t,i,e,function(t,r){t?(u.terminate(),n.ondata.call(n,t)):Array.isArray(r)?1==r.length?(n.queuedSize-=r[0],n.ondrain&&n.ondrain(r[0])):(r[1]&&u.terminate(),n.ondata.call(n,t,r[0],r[1])):s(r)});u.postMessage(r),n.queuedSize=0,n.push=function(t,r){n.ondata||I(5),a&&n.ondata(I(4,0,1),null,!!r),n.queuedSize+=t.length,u.postMessage([t,a=r],t.buffer instanceof ArrayBuffer?[t.buffer]:[])},n.terminate=function(){u.terminate()},o&&(n.flush=function(t){u.postMessage([0,t])})},ht=function(t,n){return t[n]|t[n+1]<<8},ft=function(t,n){return(t[n]|t[n+1]<<8|t[n+2]<<16|t[n+3]<<24)>>>0},ct=function(t,n){return ft(t,n)+4294967296*ft(t,n+4)},lt=function(t,n,r){for(;r;++n)t[n]=r,r>>>=8},pt=function(t,n){var r=n.filename;if(t[0]=31,t[1]=139,t[2]=8,t[8]=n.level<2?4:9==n.level?2:0,t[9]=3,0!=n.mtime&&lt(t,4,Math.floor(new Date(n.mtime||Date.now())/1e3)),r){t[3]=8;for(var i=0;i<=r.length;++i)t[i+10]=r.charCodeAt(i)}},vt=function(t){31==t[0]&&139==t[1]&&8==t[2]||I(6,"invalid gzip data");var n=t[3],r=10;4&n&&(r+=2+(t[10]|t[11]<<8));for(var i=(n>>3&1)+(n>>4&1);i>0;i-=!t[r++]);return r+(2&n)},dt=function(t){var n=t.length;return(t[n-4]|t[n-3]<<8|t[n-2]<<16|t[n-1]<<24)>>>0},gt=function(t){return 10+(t.filename?t.filename.length+1:0)},yt=function(t,n){var r=n.level,i=0==r?0:r<6?1:9==r?3:2;if(t[0]=120,t[1]=i<<6|(n.dictionary&&32),t[1]|=31-(t[0]<<8|t[1])%31,n.dictionary){var e=Y();e.p(n.dictionary),lt(t,2,e.d())}},mt=function(t,n){return(8!=(15&t[0])||t[0]>>4>7||(t[0]<<8|t[1])%31)&&I(6,"invalid zlib data"),(t[1]>>5&1)==+!n&&I(6,"invalid zlib data: "+(32&t[1]?"need":"unexpected")+" dictionary"),2+(t[1]>>3&4)};function bt(t,n){return"function"==typeof t&&(n=t,t={}),this.ondata=n,t}var wt=function(){function t(t,r){if("function"==typeof t&&(r=t,t={}),this.ondata=r,this.o=t||{},this.s={l:0,i:32768,w:32768,z:32768},this.b=new n(98304),this.o.dictionary){var i=this.o.dictionary.subarray(-32768);this.b.set(i,32768-i.length),this.s.i=32768-i.length}}return t.prototype.p=function(t,n){this.ondata(J(t,this.o,0,0,this.s),n)},t.prototype.push=function(t,r){this.ondata||I(5),this.s.l&&I(4);var i=t.length+this.s.z;if(i>this.b.length){if(i>2*this.b.length-32768){var e=new n(-32768&i);e.set(this.b.subarray(0,this.s.z)),this.b=e}var o=this.b.length-this.s.z;this.b.set(t.subarray(0,o),this.s.z),this.s.z=this.b.length,this.p(this.b,!1),this.b.set(this.b.subarray(-32768)),this.b.set(t.subarray(o),32768),this.s.z=t.length-o+32768,this.s.i=32766,this.s.w=32768}else this.b.set(t,this.s.z),this.s.z+=t.length;this.s.l=1&r,(this.s.z>this.s.w+8191||r)&&(this.p(this.b,r||!1),this.s.w=this.s.i,this.s.i-=2),r&&(this.s=this.o={},this.b=j)},t.prototype.flush=function(t){if(this.ondata||I(5),this.s.l&&I(4),this.p(this.b,!1),this.s.w=this.s.i,this.s.i-=2,t){var r=new n(6);r[0]=this.s.r>>3;var i=L(r,this.s.r,j);this.s.r=0,this.ondata(r.subarray(0,i>>3),!1)}},t}();_e.Deflate=wt;var xt=function(){return function(t,n){ut([_,function(){return[at,wt]}],this,bt.call(this,t,n),function(t){var n=new wt(t.data);onmessage=at(n)},6,1)}}();function zt(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[_],function(t){return et(kt(t.data[0],t.data[1]))},0,r)}function kt(t,n){return J(t,n||{},0,0)}_e.AsyncDeflate=xt;var Mt=function(){function t(t,r){"function"==typeof t&&(r=t,t={}),this.ondata=r;var i=t&&t.dictionary&&t.dictionary.subarray(-32768);this.s={i:0,b:i?i.length:0},this.o=new n(32768),this.p=new n(0),i&&this.o.set(i)}return t.prototype.e=function(t){if(this.ondata||I(5),this.d&&I(4),this.p.length){if(t.length){var r=new n(this.p.length+t.length);r.set(this.p),r.set(t,this.p.length),this.p=r}}else this.p=t},t.prototype.c=function(t){this.s.i=+(this.d=t||!1);var n=this.s.b,r=U(this.p,this.s,this.o);this.ondata(D(r,n,this.s.b),this.d),this.o=D(r,this.s.b-32768),this.s.b=this.o.length,this.p=D(this.p,this.s.p/8|0),this.s.p&=7},t.prototype.push=function(t,n){this.e(t),this.c(n)},t}();_e.Inflate=Mt;var St=function(){return function(t,n){ut([$,function(){return[at,Mt]}],this,bt.call(this,t,n),function(t){var n=new Mt(t.data);onmessage=at(n)},7,0)}}();function At(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[$],function(t){return et(Tt(t.data[0],ot(t.data[1])))},1,r)}function Tt(t,n){return U(t,{i:2},n&&n.out,n&&n.dictionary)}_e.AsyncInflate=St;var Dt=function(){function t(t,n){this.c=V(),this.l=0,this.v=1,wt.call(this,t,n)}return t.prototype.push=function(t,n){this.c.p(t),this.l+=t.length,wt.prototype.push.call(this,t,n)},t.prototype.p=function(t,n){var r=J(t,this.o,this.v&&gt(this.o),n&&8,this.s);this.v&&(pt(r,this.o),this.v=0),n&&(lt(r,r.length-8,this.c.d()),lt(r,r.length-4,this.l)),this.ondata(r,n)},t.prototype.flush=function(t){wt.prototype.flush.call(this,t)},t}();_e.Gzip=Dt,_e.Compress=Dt;var Ct=function(){return function(t,n){ut([_,tt,function(){return[at,wt,Dt]}],this,bt.call(this,t,n),function(t){var n=new Dt(t.data);onmessage=at(n)},8,1)}}();function It(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[_,tt,function(){return[Ut]}],function(t){return et(Ut(t.data[0],t.data[1]))},2,r)}function Ut(t,n){n||(n={});var r=V(),i=t.length;r.p(t);var e=J(t,n,gt(n),8),o=e.length;return pt(e,n),lt(e,o-8,r.d()),lt(e,o-4,i),e}_e.AsyncGzip=Ct,_e.AsyncCompress=Ct;var Ft=function(){function t(t,n){this.v=1,this.r=0,Mt.call(this,t,n)}return t.prototype.push=function(t,r){if(Mt.prototype.e.call(this,t),this.r+=t.length,this.v){var i=this.p.subarray(this.v-1),e=i.length>3?vt(i):4;if(e>i.length){if(!r)return}else this.v>1&&this.onmember&&this.onmember(this.r-i.length);this.p=i.subarray(e),this.v=0}Mt.prototype.c.call(this,0),this.s.f&&!this.s.l?(this.v=T(this.s.p)+9,this.s={i:0},this.o=new n(0),this.push(new n(0),r)):r&&Mt.prototype.c.call(this,r)},t}();_e.Gunzip=Ft;var Et=function(){return function(t,n){var r=this;ut([$,nt,function(){return[at,Mt,Ft]}],this,bt.call(this,t,n),function(t){var n=new Ft(t.data);n.onmember=function(t){return postMessage(t)},onmessage=at(n)},9,0,function(t){return r.onmember&&r.onmember(t)})}}();function Zt(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[$,nt,function(){return[qt]}],function(t){return et(qt(t.data[0],t.data[1]))},3,r)}function qt(t,r){var i=vt(t);return i+8>t.length&&I(6,"invalid gzip data"),U(t.subarray(i,-8),{i:2},r&&r.out||new n(dt(t)),r&&r.dictionary)}_e.AsyncGunzip=Et;var Ot=function(){function t(t,n){this.c=Y(),this.v=1,wt.call(this,t,n)}return t.prototype.push=function(t,n){this.c.p(t),wt.prototype.push.call(this,t,n)},t.prototype.p=function(t,n){var r=J(t,this.o,this.v&&(this.o.dictionary?6:2),n&&4,this.s);this.v&&(yt(r,this.o),this.v=0),n&&lt(r,r.length-4,this.c.d()),this.ondata(r,n)},t.prototype.flush=function(t){wt.prototype.flush.call(this,t)},t}();_e.Zlib=Ot;var Gt=function(){return function(t,n){ut([_,rt,function(){return[at,wt,Ot]}],this,bt.call(this,t,n),function(t){var n=new Ot(t.data);onmessage=at(n)},10,1)}}();function Lt(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[_,rt,function(){return[Bt]}],function(t){return et(Bt(t.data[0],t.data[1]))},4,r)}function Bt(t,n){n||(n={});var r=Y();r.p(t);var i=J(t,n,n.dictionary?6:2,4);return yt(i,n),lt(i,i.length-4,r.d()),i}_e.AsyncZlib=Gt;var Ht=function(){function t(t,n){Mt.call(this,t,n),this.v=t&&t.dictionary?2:1}return t.prototype.push=function(t,n){if(Mt.prototype.e.call(this,t),this.v){if(this.p.length<6&&!n)return;this.p=this.p.subarray(mt(this.p,this.v-1)),this.v=0}n&&(this.p.length<4&&I(6,"invalid zlib data"),this.p=this.p.subarray(0,-4)),Mt.prototype.c.call(this,n)},t}();_e.Unzlib=Ht;var jt=function(){return function(t,n){ut([$,it,function(){return[at,Mt,Ht]}],this,bt.call(this,t,n),function(t){var n=new Ht(t.data);onmessage=at(n)},11,0)}}();function Nt(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[$,it,function(){return[Pt]}],function(t){return et(Pt(t.data[0],ot(t.data[1])))},5,r)}function Pt(t,n){return U(t.subarray(mt(t,n&&n.dictionary),-4),{i:2},n&&n.out,n&&n.dictionary)}_e.AsyncUnzlib=jt;var Vt=function(){function t(t,n){this.o=bt.call(this,t,n)||{},this.G=Ft,this.I=Mt,this.Z=Ht}return t.prototype.i=function(){var t=this;this.s.ondata=function(n,r){t.ondata(n,r)}},t.prototype.push=function(t,r){if(this.ondata||I(5),this.s)this.s.push(t,r);else{if(this.p&&this.p.length){var i=new n(this.p.length+t.length);i.set(this.p),i.set(t,this.p.length)}else this.p=t;this.p.length>2&&(this.s=31==this.p[0]&&139==this.p[1]&&8==this.p[2]?new this.G(this.o):8!=(15&this.p[0])||this.p[0]>>4>7||(this.p[0]<<8|this.p[1])%31?new this.I(this.o):new this.Z(this.o),this.i(),this.s.push(this.p,r),this.p=null)}},t}();_e.Decompress=Vt;var Yt=function(){function t(t,n){Vt.call(this,t,n),this.queuedSize=0,this.G=Et,this.I=St,this.Z=jt}return t.prototype.i=function(){var t=this;this.s.ondata=function(n,r,i){t.ondata(n,r,i)},this.s.ondrain=function(n){t.queuedSize-=n,t.ondrain&&t.ondrain(n)}},t.prototype.push=function(t,n){this.queuedSize+=t.length,Vt.prototype.push.call(this,t,n)},t}();function Jt(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),31==t[0]&&139==t[1]&&8==t[2]?Zt(t,n,r):8!=(15&t[0])||t[0]>>4>7||(t[0]<<8|t[1])%31?At(t,n,r):Nt(t,n,r)}function Kt(t,n){return 31==t[0]&&139==t[1]&&8==t[2]?qt(t,n):8!=(15&t[0])||t[0]>>4>7||(t[0]<<8|t[1])%31?Tt(t,n):Pt(t,n)}_e.AsyncDecompress=Yt;var Qt=function(t,r,i,e){for(var o in t){var s=t[o],a=r+o,u=e;Array.isArray(s)&&(u=K(e,s[1]),s=s[0]),ArrayBuffer.isView(s)?i[a]=[s,u]:(i[a+="/"]=[new n(0),u],Qt(s,a,i,e))}},Rt="undefined"!=typeof TextEncoder&&new TextEncoder,Wt="undefined"!=typeof TextDecoder&&new TextDecoder,Xt=0;try{Wt.decode(j,{stream:!0}),Xt=1}catch(t){}var $t=function(t){for(var n="",r=0;;){var i=t[r++],e=(i>127)+(i>223)+(i>239);if(r+e>t.length)return{s:n,r:D(t,r-1)};e?3==e?(i=((15&i)<<18|(63&t[r++])<<12|(63&t[r++])<<6|63&t[r++])-65536,n+=String.fromCharCode(55296|i>>10,56320|1023&i)):n+=String.fromCharCode(1&e?(31&i)<<6|63&t[r++]:(15&i)<<12|(63&t[r++])<<6|63&t[r++]):n+=String.fromCharCode(i)}},_t=function(){function t(t){this.ondata=t,Xt?this.t=new TextDecoder:this.p=j}return t.prototype.push=function(t,r){if(this.ondata||I(5),r=!!r,this.t)return this.ondata(this.t.decode(t,{stream:!0}),r),void(r&&(this.t.decode().length&&I(8),this.t=null));this.p||I(4);var i=new n(this.p.length+t.length);i.set(this.p),i.set(t,this.p.length);var e=$t(i),o=e.s,s=e.r;r?(s.length&&I(8),this.p=null):this.p=s,this.ondata(o,r)},t}();_e.DecodeUTF8=_t;var tn=function(){function t(t){this.ondata=t}return t.prototype.push=function(t,n){this.ondata||I(5),this.d&&I(4),this.ondata(nn(t),this.d=n||!1)},t}();function nn(t,r){if(r){for(var i=new n(t.length),e=0;e<t.length;++e)i[e]=t.charCodeAt(e);return i}if(Rt)return Rt.encode(t);var o=t.length,s=new n(t.length+(t.length>>1)),a=0,u=function(t){s[a++]=t};for(e=0;e<o;++e){if(a+5>s.length){var h=new n(a+8+(o-e<<1));h.set(s),s=h}var f=t.charCodeAt(e);f<128||r?u(f):f<2048?(u(192|f>>6),u(128|63&f)):f>55295&&f<57344?(u(240|(f=65536+(1047552&f)|1023&t.charCodeAt(++e))>>18),u(128|f>>12&63),u(128|f>>6&63),u(128|63&f)):(u(224|f>>12),u(128|f>>6&63),u(128|63&f))}return D(s,0,a)}function rn(t,n){if(n){for(var r="",i=0;i<t.length;i+=16384)r+=String.fromCharCode.apply(null,t.subarray(i,i+16384));return r}if(Wt)return Wt.decode(t);var e=$t(t),o=e.s;return(r=e.r).length&&I(8),o}_e.EncodeUTF8=tn;var en=function(t){return 1==t?3:t<6?2:9==t?1:0},on=function(t,n){return n+30+ht(t,n+26)+ht(t,n+28)},sn=function(t,n,r){var i=ht(t,n+28),e=ht(t,n+30),o=rn(t.subarray(n+46,n+46+i),!(2048&ht(t,n+8))),s=n+46+i,a=an(t,s,e,r,ft(t,n+20),ft(t,n+24),ft(t,n+42)),u=a[0],h=a[1],f=a[2];return[ht(t,n+10),u,h,o,s+e+ht(t,n+32),f]},an=function(t,n,r,i,e,o,s){var a=4294967295==e,u=4294967295==o,h=4294967295==s,f=n+r;if(i&&a+u+h){for(;n+4<f;n+=4+ht(t,n+2))if(1==ht(t,n))return[a?ct(t,n+4+8*u):e,u?ct(t,n+4):o,h?ct(t,n+4+8*(u+a)):s,1];i<2&&I(13)}return[e,o,s,0]},un=function(t){var n=0;if(t)for(var r in t){var i=t[r].length;i>65535&&I(9),n+=i+4}return n},hn=function(t,n,r,i,e,o,s,a){var u=i.length,h=r.extra,f=a&&a.length,c=un(h);lt(t,n,null!=s?33639248:67324752),n+=4,null!=s&&(t[n++]=20,t[n++]=r.os),t[n]=20,n+=2,t[n++]=r.flag<<1|(o<0&&8),t[n++]=e&&8,t[n++]=255&r.compression,t[n++]=r.compression>>8;var l=new Date(null==r.mtime?Date.now():r.mtime),p=l.getFullYear()-1980;if((p<0||p>119)&&I(10),lt(t,n,p<<25|l.getMonth()+1<<21|l.getDate()<<16|l.getHours()<<11|l.getMinutes()<<5|l.getSeconds()>>1),n+=4,-1!=o&&(lt(t,n,r.crc),lt(t,n+4,o<0?-o-2:o),lt(t,n+8,r.size)),lt(t,n+12,u),lt(t,n+14,c),n+=16,null!=s&&(lt(t,n,f),lt(t,n+6,r.attrs),lt(t,n+10,s),n+=14),t.set(i,n),n+=u,c)for(var v in h){var d=h[v],g=d.length;lt(t,n,+v),lt(t,n+2,g),t.set(d,n+4),n+=4+g}return f&&(t.set(a,n),n+=f),n},fn=function(t,n,r,i,e){lt(t,n,101010256),lt(t,n+8,r),lt(t,n+10,r),lt(t,n+12,i),lt(t,n+16,e)},cn=function(){function t(t){this.filename=t,this.c=V(),this.size=0,this.compression=0}return t.prototype.process=function(t,n){this.ondata(null,t,n)},t.prototype.push=function(t,n){this.ondata||I(5),this.c.p(t),this.size+=t.length,n&&(this.crc=this.c.d()),this.process(t,n||!1)},t}();_e.ZipPassThrough=cn;var ln=function(){function t(t,n){var r=this;n||(n={}),cn.call(this,t),this.d=new wt(n,function(t,n){r.ondata(null,t,n)}),this.compression=8,this.flag=en(n.level)}return t.prototype.process=function(t,n){try{this.d.push(t,n)}catch(t){this.ondata(t,null,n)}},t.prototype.push=function(t,n){cn.prototype.push.call(this,t,n)},t}();_e.ZipDeflate=ln;var pn=function(){function t(t,n){var r=this;n||(n={}),cn.call(this,t),this.d=new xt(n,function(t,n,i){r.ondata(t,n,i)}),this.compression=8,this.flag=en(n.level),this.terminate=this.d.terminate}return t.prototype.process=function(t,n){this.d.push(t,n)},t.prototype.push=function(t,n){cn.prototype.push.call(this,t,n)},t}();_e.AsyncZipDeflate=pn;var vn=function(){function t(t){this.ondata=t,this.u=[],this.d=1}return t.prototype.add=function(t){var r=this;if(this.ondata||I(5),2&this.d)this.ondata(I(4+8*(1&this.d),0,1),null,!1);else{var i=nn(t.filename),e=i.length,o=t.comment,s=o&&nn(o),a=e!=t.filename.length||s&&o.length!=s.length,u=e+un(t.extra)+30;e>65535&&this.ondata(I(11,0,1),null,!1);var h=new n(u);hn(h,0,t,i,a,-1);var f=[h],c=function(){for(var t=0,n=f;t<n.length;t++)r.ondata(null,n[t],!1);f=[]},l=this.d;this.d=0;var p=this.u.length,v=K(t,{f:i,u:a,o:s,t:function(){t.terminate&&t.terminate()},r:function(){if(c(),l){var t=r.u[p+1];t?t.r():r.d=1}l=1}}),d=0;t.ondata=function(i,e,o){if(i)r.ondata(i,e,o),r.terminate();else if(d+=e.length,f.push(e),o){var s=new n(16);lt(s,0,134695760),lt(s,4,t.crc),lt(s,8,d),lt(s,12,t.size),f.push(s),v.c=d,v.b=u+d+16,v.crc=t.crc,v.size=t.size,l&&v.r(),l=1}else l&&c()},this.u.push(v)}},t.prototype.end=function(){var t=this;2&this.d?this.ondata(I(4+8*(1&this.d),0,1),null,!0):(this.d?this.e():this.u.push({r:function(){1&t.d&&(t.u.splice(-1,1),t.e())},t:function(){}}),this.d=3)},t.prototype.e=function(){for(var t=0,r=0,i=0,e=0,o=this.u;e<o.length;e++)i+=46+(h=o[e]).f.length+un(h.extra)+(h.o?h.o.length:0);for(var s=new n(i+22),a=0,u=this.u;a<u.length;a++){var h;hn(s,t,h=u[a],h.f,h.u,-h.c-2,r,h.o),t+=46+h.f.length+un(h.extra)+(h.o?h.o.length:0),r+=h.b}fn(s,t,this.u.length,i,r),this.ondata(null,s,!0),this.d=2},t.prototype.terminate=function(){for(var t=0,n=this.u;t<n.length;t++)n[t].t();this.d=2},t}();function dn(t,r,i){i||(i=r,r={}),"function"!=typeof i&&I(7);var e={};Qt(t,"",e,r);var o=Object.keys(e),s=o.length,a=0,u=0,h=s,f=Array(s),c=[],l=function(){for(var t=0;t<c.length;++t)c[t]()},p=function(t,n){xn(function(){i(t,n)})};xn(function(){p=i});var v=function(){var t=new n(u+22),r=a,i=u-a;u=0;for(var e=0;e<h;++e){var o=f[e];try{var s=o.c.length;hn(t,u,o,o.f,o.u,s);var c=30+o.f.length+un(o.extra),l=u+c;t.set(o.c,l),hn(t,a,o,o.f,o.u,s,u,o.m),a+=16+c+(o.m?o.m.length:0),u=l+s}catch(t){return p(t,null)}}fn(t,a,f.length,i,r),p(null,t)};s||v();for(var d=function(t){var n=o[t],r=e[n],i=r[0],h=r[1],d=V(),g=i.length;d.p(i);var y=nn(n),m=y.length,b=h.comment,w=b&&nn(b),x=w&&w.length,z=un(h.extra),k=0==h.level?0:8,M=function(r,i){if(r)l(),p(r,null);else{var e=i.length;f[t]=K(h,{size:g,crc:d.d(),c:i,f:y,m:w,u:m!=n.length||w&&b.length!=x,compression:k}),a+=30+m+z+e,u+=76+2*(m+z)+(x||0)+e,--s||v()}};if(m>65535&&M(I(11,0,1),null),k)if(g<16e4)try{M(null,kt(i,h))}catch(t){M(t,null)}else c.push(zt(i,h,M));else M(null,i)},g=0;g<h;++g)d(g);return l}function gn(t,r){r||(r={});var i={},e=[];Qt(t,"",i,r);var o=0,s=0;for(var a in i){var u=i[a],h=u[0],f=u[1],c=0==f.level?0:8,l=(M=nn(a)).length,p=f.comment,v=p&&nn(p),d=v&&v.length,g=un(f.extra);l>65535&&I(11);var y=c?kt(h,f):h,m=y.length,b=V();b.p(h),e.push(K(f,{size:h.length,crc:b.d(),c:y,f:M,m:v,u:l!=a.length||v&&p.length!=d,o:o,compression:c})),o+=30+l+g+m,s+=76+2*(l+g)+(d||0)+m}for(var w=new n(s+22),x=o,z=s-o,k=0;k<e.length;++k){var M;hn(w,(M=e[k]).o,M,M.f,M.u,M.c.length);var S=30+M.f.length+un(M.extra);w.set(M.c,M.o+S),hn(w,o,M,M.f,M.u,M.c.length,M.o,M.m),o+=16+S+(M.m?M.m.length:0)}return fn(w,o,e.length,z,x),w}_e.Zip=vn;var yn=function(){function t(){}return t.prototype.push=function(t,n){this.ondata(null,t,n)},t.compression=0,t}();_e.UnzipPassThrough=yn;var mn=function(){function t(){var t=this;this.i=new Mt(function(n,r){t.ondata(null,n,r)})}return t.prototype.push=function(t,n){try{this.i.push(t,n)}catch(t){this.ondata(t,null,n)}},t.compression=8,t}();_e.UnzipInflate=mn;var bn=function(){function t(t,n){var r=this;n<32e4?this.i=new Mt(function(t,n){r.ondata(null,t,n)}):(this.i=new St(function(t,n,i){r.ondata(t,n,i)}),this.terminate=this.i.terminate)}return t.prototype.push=function(t,n){this.i.terminate&&(t=D(t,0)),this.i.push(t,n)},t.compression=8,t}();_e.AsyncUnzipInflate=bn;var wn=function(){function t(t){this.onfile=t,this.k=[],this.o={0:yn},this.p=j}return t.prototype.push=function(t,r){var i=this;if(this.onfile||I(5),this.p||I(4),this.c>0){var e=Math.min(this.c,t.length),o=t.subarray(0,e);if(this.c-=e,this.d?this.d.push(o,!this.c):this.k[0].push(o),(t=t.subarray(e)).length)return this.push(t,r)}else{var s=0,a=0,u=void 0,h=void 0;this.p.length?t.length?((h=new n(this.p.length+t.length)).set(this.p),h.set(t,this.p.length)):h=this.p:h=t;for(var f=h.length,c=this.c,l=c&&this.d,p=function(){var t=ft(h,a);if(67324752==t){s=1,u=a,v.d=null,v.c=0;var n=ht(h,a+6),r=ht(h,a+8),e=2048&n,o=8&n,l=ht(h,a+26),p=ht(h,a+28);if(f>a+30+l+p){var d=[];v.k.unshift(d),s=2;var g,y=ft(h,a+18),m=ft(h,a+22),b=rn(h.subarray(a+30,a+=30+l),!e),w=an(h,a,p,2,y,m,0),x=w[0],z=w[1];o&&(x=-1-w[3]),a+=p,v.c=x;var k={name:b,compression:r,start:function(){if(k.ondata||I(5),x){var t=i.o[r];t||k.ondata(I(14,"unknown compression type "+r,1),null,!1),(g=x<0?new t(b):new t(b,x,z)).ondata=function(t,n,r){k.ondata(t,n,r)};for(var n=0,e=d;n<e.length;n++)g.push(e[n],!1);i.k[0]==d&&i.c?i.d=g:g.push(j,!0)}else k.ondata(null,j,!0)},terminate:function(){g&&g.terminate&&g.terminate()}};x>=0&&(k.size=x,k.originalSize=z),v.onfile(k)}return"break"}if(c){if(134695760==t)return u=a+=12+(-2==c&&8),s=3,v.c=0,"break";if(33639248==t)return u=a-=4,s=3,v.c=0,"break"}},v=this;a<f-4&&"break"!==p();++a);if(this.p=j,c<0){var d=h.subarray(0,s?u-12-(-2==c&&8)-(134695760==ft(h,u-16)&&4):a);l?l.push(d,!!s):this.k[+(2==s)].push(d)}if(2&s)return this.push(h.subarray(a),r);this.p=h.subarray(a)}r&&(this.c&&I(13),this.p=null)},t.prototype.register=function(t){this.o[t.compression]=t},t}();_e.Unzip=wn;var xn="function"==typeof queueMicrotask?queueMicrotask:"function"==typeof setTimeout?setTimeout:function(t){t()};function zn(t,r,i){i||(i=r,r={}),"function"!=typeof i&&I(7);var e=[],o=function(){for(var t=0;t<e.length;++t)e[t]()},s={},a=function(t,n){xn(function(){i(t,n)})};xn(function(){a=i});for(var u=t.length-22;101010256!=ft(t,u);--u)if(!u||t.length-u>65558)return a(I(13,0,1),null),o;var h=ht(t,u+8);if(h){var f=h,c=ft(t,u+16),l=117853008==ft(t,u-20);if(l){var p=ft(t,u-12);(l=101075792==ft(t,p))&&(f=h=ft(t,p+32),c=ft(t,p+48))}for(var v=r&&r.filter,d=function(r){var i=sn(t,c,l),u=i[0],f=i[1],p=i[2],d=i[3],g=i[4],y=on(t,i[5]);c=g;var m=function(t,n){t?(o(),a(t,null)):(n&&(s[d]=n),--h||a(null,s))};if(!v||v({name:d,size:f,originalSize:p,compression:u}))if(u)if(8==u){var b=t.subarray(y,y+f);if(p<524288||f>.8*p)try{m(null,Tt(b,{out:new n(p)}))}catch(t){m(t,null)}else e.push(At(b,{size:p},m))}else m(I(14,"unknown compression type "+u,1),null);else m(null,D(t,y,y+f));else m(null,null)},g=0;g<f;++g)d()}else a(null,{});return o}function kn(t,r){for(var i={},e=t.length-22;101010256!=ft(t,e);--e)(!e||t.length-e>65558)&&I(13);var o=ht(t,e+8);if(!o)return{};var s=ft(t,e+16),a=117853008==ft(t,e-20);if(a){var u=ft(t,e-12);(a=101075792==ft(t,u))&&(o=ft(t,u+32),s=ft(t,u+48))}for(var h=r&&r.filter,f=0;f<o;++f){var c=sn(t,s,a),l=c[0],p=c[1],v=c[2],d=c[3],g=c[4],y=on(t,c[5]);s=g,h&&!h({name:d,size:p,originalSize:v,compression:l})||(l?8==l?i[d]=Tt(t.subarray(y,y+p),{out:new n(v)}):I(14,"unknown compression type "+l):i[d]=D(t,y,y+p))}return i}return _e});</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+(function(){
+"use strict";
+if (window.pdfjsLib) {
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+/* ============================== PARSER ============================== */
+
+const RUN_FIELDS = [
+  "Sprayer","Run Number","Date Started","Road Position","Tank Start Volume",
+  "Tank Finish Volume","Route Start","Route Finish","Hot Litres Used",
+  "Litres Used at Design Rate","Litres Used at 15 Degrees","Target Rate",
+  "Length","Width","Spray Area","Spray Temperature","Air Temperature",
+  "Humidity","Road Temperature","Actual Spray Rate",
+  "GPS Start Latitude","GPS Start Longitude","GPS Stop Latitude","GPS Stop Longitude"
+];
+
+const JOB_FIELD_MAP = {
+  "Job Number": "jobNumber",
+  "Contract Number": "contractNumber",
+  "Contract Description": "contractDescription",
+  "Site": "site",
+  "Location": "location",
+  "Treatment Type": "treatmentType",
+  "SprayerName": "sprayerName",
+  "Comments": "comments",
+  "Date Job Completed": "dateJobCompleted",
+};
+
+const COAT_FIELD_MAP = {
+  "Design Rate Average": "designRateAvg",
+  "Spray Rate Average": "sprayRateAvg",
+  "Total Area": "totalArea",
+  "Total Hot Litres": "totalHotLitres",
+  "Total Litres at 15 Degrees": "totalLitres15",
+  "Spray Temperature Average": "sprayTempAvg",
+  "Total Runs": "totalRuns",
+  "Binder Type": "binderType",
+  "Aggregate Size": "aggregateSize",
+};
+
+function parseReport(text) {
+  const lines = text.split("\n").map(l => l.trim());
+  const n = lines.length;
+  const job = { coats: [] };
+  let i = 0;
+  let jobFieldsSeen = 0;
+
+  function parseCoatBlock(i) {
+    const coat = { runs: [] };
+    coat.coatNumber = lines[i + 1] || "";
+    i += 2;
+    while (i < n) {
+      const line = lines[i];
+      if (line === "Pass/Fail") { i++; continue; }
+      if (line === "Sprayer" && lines[i + 1] === "Run Number") break;
+      if (Object.prototype.hasOwnProperty.call(COAT_FIELD_MAP, line)) {
+        coat[COAT_FIELD_MAP[line]] = lines[i + 1] || "";
+        i += 2; continue;
+      }
+      i++;
+      if (i > n) break;
+    }
+    if (lines[i] === "Sprayer") {
+      let j = i, header = [];
+      while (j < n && RUN_FIELDS.includes(lines[j])) { header.push(lines[j]); j++; }
+      i = j;
+      while (i < n) {
+        if (lines[i] === "Coat Number" || lines[i] === undefined) break;
+        if (lines[i] === "") { i++; continue; }
+        if (i + header.length > n) break;
+        const values = lines.slice(i, i + header.length);
+        const run = {};
+        header.forEach((f, k) => run[f] = values[k]);
+        // sanity check: Sprayer + Run Number should look numeric-ish
+        if (/^\d+$/.test((run["Sprayer"]||"").trim()) && /^\d+$/.test((run["Run Number"]||"").trim())) {
+          run["Coat Number"] = coat.coatNumber; // tag for cross-coat lookups, same as the PDF path gives natively
+          coat.runs.push(run);
+          i += header.length;
+          while (i < n && lines[i] === "") i++;
+        } else {
+          break; // hit trailing/garbage content, stop this coat's run table
+        }
+      }
+    }
+    return [coat, i];
+  }
+
+  while (i < n) {
+    const line = lines[i];
+    if (Object.prototype.hasOwnProperty.call(JOB_FIELD_MAP, line) && job[JOB_FIELD_MAP[line]] === undefined) {
+      job[JOB_FIELD_MAP[line]] = lines[i + 1] || "";
+      jobFieldsSeen++;
+      i += 2; continue;
+    }
+    if (line === "Coat Number") {
+      const [coat, ni] = parseCoatBlock(i);
+      job.coats.push(coat);
+      i = ni; continue;
+    }
+    i++;
+  }
+  return { job, jobFieldsSeen };
+}
+
+/* ============================== PDF PARSER ============================== */
+// Parses BJTS's "Print View" PDF export. Unlike the copy-pasted webpage text,
+// the PDF gives a real Time Started and a Coat Number on every run row, plus
+// the per-coat summary (Aggregate Size, Binder Type, etc.) in a clean
+// "Coat Details" block. pdf.js hands back text items in column-major order
+// with just x/y positions, so we rebuild rows by clustering items that share
+// a y-coordinate, then split each row into columns by clustering x-starts.
+
+function clusterColumns(xs, tolerance) {
+  const sorted = [...xs].sort((a, b) => a - b);
+  const clusters = [];
+  for (const x of sorted) {
+    if (clusters.length && x - clusters[clusters.length - 1].sum / clusters[clusters.length - 1].n < tolerance) {
+      const c = clusters[clusters.length - 1];
+      c.sum += x; c.n += 1;
+    } else {
+      clusters.push({ sum: x, n: 1 });
+    }
+  }
+  return clusters.map(c => c.sum / c.n);
+}
+function nearestColumn(x, columns) {
+  let best = 0, bestD = Infinity;
+  for (let i = 0; i < columns.length; i++) {
+    const d = Math.abs(x - columns[i]);
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  return best;
+}
+async function extractPdfRows(page) {
+  const content = await page.getTextContent();
+  const items = content.items.filter(it => it.str.trim() !== "");
+  if (!items.length) return [];
+  const byY = new Map();
+  for (const it of items) {
+    const y = it.transform[5];
+    let key = null;
+    for (const k of byY.keys()) { if (Math.abs(k - y) < 1) { key = k; break; } }
+    if (key === null) key = y;
+    if (!byY.has(key)) byY.set(key, []);
+    byY.get(key).push(it);
+  }
+  const allX = items.map(it => it.transform[4]);
+  const columns = clusterColumns(allX, 8);
+  return [...byY.entries()]
+    .sort((a, b) => b[0] - a[0]) // PDF y grows upward; reading order is top -> bottom
+    .map(([, its]) => {
+      const cells = new Array(columns.length).fill("");
+      its.sort((a, b) => a.transform[4] - b.transform[4]);
+      its.forEach(it => {
+        const col = nearestColumn(it.transform[4], columns);
+        cells[col] = (cells[col] ? cells[col] + " " : "") + it.str.trim();
+      });
+      return cells.filter(c => c !== "");
+    });
+}
+
+const PDF_RUN_LABELS = new Set([
+  "Sprayer","Run Number","Date Started","Time Started","Coat Number","Road Position",
+  "Tank Start Volume","Tank Finish Volume","Route Start","Route Finish","Hot Litres Used",
+  "Litres Used at Design Rate","Litres Used at 15 Degrees","Target Rate",
+  "Length","Width","Spray Area","Spray Temperature","Air Temperature",
+  "Humidity","Road Temperature","Actual Spray Rate",
+  "GPS Start Latitude","GPS Start Longitude","GPS Stop Latitude","GPS Stop Longitude"
+]);
+const PDF_SECTION_HEADINGS = new Set(["Job Details", "Coat Details", "Run Details"]);
+
+function pdfRowToPairs(row) {
+  const pairs = [];
+  for (let i = 0; i + 1 < row.length; i += 2) pairs.push([row[i], row[i + 1]]);
+  return pairs;
+}
+function findCoatByNumber(coats, coatNumber) {
+  return coats.find(c => c.coatNumber === coatNumber);
+}
+
+async function parsePdfDocument(doc) {
+  const job = { coats: [] };
+  let section = null; // null | "jobtotals" | "coatdetails" | "rundetails"
+  let currentCoatDetail = null;
+  let currentRun = null;
+
+  function flushRun() {
+    if (!currentRun) return;
+    let bucket = findCoatByNumber(job.coats, currentRun["Coat Number"]);
+    if (!bucket) { bucket = { coatNumber: currentRun["Coat Number"], runs: [] }; job.coats.push(bucket); }
+    bucket.runs.push(currentRun);
+    currentRun = null;
+  }
+
+  for (let p = 1; p <= doc.numPages; p++) {
+    const page = await doc.getPage(p);
+    const rows = await extractPdfRows(page);
+    for (const row of rows) {
+      if (row.length === 1 && PDF_SECTION_HEADINGS.has(row[0])) {
+        if (row[0] === "Coat Details") flushRun();
+        section = row[0] === "Job Details" ? "jobtotals" : row[0] === "Coat Details" ? "coatdetails" : "rundetails";
+        currentCoatDetail = null;
+        continue;
+      }
+      if (row.length < 2) continue;
+      const pairs = pdfRowToPairs(row);
+      for (const [label, value] of pairs) {
+        if (section === "rundetails" || (section === null && label === "Run Number")) {
+          if (label === "Run Number") {
+            flushRun();
+            currentRun = { "Run Number": value };
+          } else if (currentRun && PDF_RUN_LABELS.has(label)) {
+            currentRun[label] = value;
+          }
+          continue;
+        }
+        if (section === "coatdetails" || label === "Coat Number") {
+          if (label === "Coat Number") {
+            currentCoatDetail = findCoatByNumber(job.coats, value);
+            if (!currentCoatDetail) { currentCoatDetail = { coatNumber: value, runs: [] }; job.coats.push(currentCoatDetail); }
+          } else if (currentCoatDetail && Object.prototype.hasOwnProperty.call(COAT_FIELD_MAP, label)) {
+            currentCoatDetail[COAT_FIELD_MAP[label]] = value;
+          }
+          continue;
+        }
+        if (Object.prototype.hasOwnProperty.call(JOB_FIELD_MAP, label) && job[JOB_FIELD_MAP[label]] === undefined) {
+          job[JOB_FIELD_MAP[label]] = value;
+        }
+      }
+    }
+  }
+  flushRun();
+  return job;
+}
+
+async function parsePdfFile(file) {
+  if (!window.pdfjsLib) throw new Error("PDF reader didn't load — check your connection and try again.");
+  const buf = await file.arrayBuffer();
+  const doc = await window.pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+  const job = await parsePdfDocument(doc);
+  return job;
+}
+
+/* ============================ MAPPING HELPERS ============================ */
+
+const POS_MAP = [
+  ["FULL WID", "FW"], ["LEFT SHO", "L"], ["RIGHT SH", "R"],
+  ["LEFT", "L"], ["RIGHT", "R"], ["CENTRE", "C"], ["CENTER", "C"],
+  ["PRE-SPRA", "PS"]
+];
+function mapPosition(raw) {
+  raw = (raw || "").replace(/\.+$/,"").trim();
+  for (const [k, v] of POS_MAP) if (raw.toUpperCase().startsWith(k)) return v;
+  return raw;
+}
+function isFogRun(raw) { return (raw || "").toUpperCase().startsWith("PRE-SPRA"); }
+
+// "11/09/20..." -> {day:11, month:9, raw}; tolerant of full dates too
+function parseBjtsDate(raw) {
+  const m = (raw || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (!m) return null;
+  return { day: +m[1], month: +m[2], year: +m[3], key: m[1].padStart(2,"0") + "/" + m[2].padStart(2,"0") };
+}
+// BJTS occasionally logs a run with Date Started 21/01/1919, Time Started
+// 00:00:00 and Air Temperature -1 when its sensors didn't record properly —
+// a sentinel, not a real date. Route these into their own bucket instead of
+// silently grouping them under a real-looking "21 Jan" date.
+// Only trust a FULL 4-digit year for this check: the copy-pasted webpage text
+// truncates cells (e.g. "11/09/20..."), and a truncated 2-digit year must
+// never be mistaken for the sentinel.
+function isPlaceholderDate(raw) {
+  const m = (raw || "").match(/^\d{1,2}\/\d{1,2}\/(\d{4})\b/);
+  return !!m && +m[1] < 2000;
+}
+function fmtDateKey(key, year) {
+  const [d, mo] = key.split("/");
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `${d} ${months[+mo - 1]} ${year}`;
+}
+
+function toNum(v, fallback) {
+  const f = parseFloat(v);
+  return isNaN(f) ? (fallback === undefined ? null : fallback) : f;
+}
+
+// "10:26:04" -> seconds since midnight, or null if there's no time field
+// (the copy-pasted webpage text doesn't carry one; the PDF does).
+function timeToSeconds(t) {
+  const m = (t || "").match(/^(\d{1,2}):(\d{2}):(\d{2})/);
+  if (!m) return null;
+  return (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]);
+}
+// Sequence runs the way they were actually sprayed: by real time-of-day when
+// the source gives one (the PDF), otherwise by Run Number as a documented
+// stand-in (BJTS assigns it in logging order, same as spray order).
+function compareRunOrder(a, b) {
+  const ta = timeToSeconds(a["Time Started"]);
+  const tb = timeToSeconds(b["Time Started"]);
+  if (ta !== null && tb !== null) return ta - tb;
+  return toNum(a["Run Number"], 0) - toNum(b["Run Number"], 0);
+}
+function jobHasRunTimes(job) {
+  return job.coats.some(c => c.runs.some(r => timeToSeconds(r["Time Started"]) !== null));
+}
+// Fall back to "this year" only if nothing in the data says otherwise —
+// keeps the tool correct for reports from a previous year.
+function inferJobYear(job) {
+  for (const coat of job.coats) {
+    for (const r of coat.runs) {
+      const m = (r["Date Started"] || "").match(/\/(\d{4})$/);
+      if (m) return +m[1];
+    }
+  }
+  return new Date().getFullYear();
+}
+
+/* ============================== APP STATE ============================== */
+
+// The v2 template has 60 pre-formatted data rows (sheet rows 11-70) so a busy
+// combined day is never cut off; whichever of them aren't needed for a given
+// day get hidden (not deleted) so the visible/printed sheet still looks
+// right-sized. BUFFER_ROWS extra blank rows are always left after the real
+// data, per your request, for anything you need to add by hand.
+const V2_FIRST_ROW = 11;
+const V2_MAX_DATA_ROWS = 60;
+const V2_LAST_ROW = V2_FIRST_ROW + V2_MAX_DATA_ROWS - 1; // 70
+const BUFFER_ROWS = 5;
+const V2_TOTALS_ROW = 72;
+const V2_COMMENTS_ROW = 76;
+
+let PARSED = null;   // { job, jobFieldsSeen }
+let ACTIVE_COAT = 0;
+let ROW_STATE = [];   // per visible-run editable state, aligned with filteredRuns()
+let JOB_YEAR = new Date().getFullYear();
+
+const $ = (id) => document.getElementById(id);
+const UNRECORDED_KEY = "__unrecorded__";
+
+function runMatchesDateKey(r, dateKey) {
+  if (dateKey === UNRECORDED_KEY) return isPlaceholderDate(r["Date Started"]);
+  const d = parseBjtsDate(r["Date Started"]);
+  return !!d && !isPlaceholderDate(r["Date Started"]) && d.key === dateKey;
+}
+
+// A run's own coat, looked up by the "Coat Number" every run is tagged with
+// (natively from the PDF, or tagged on parse for the pasted-text path).
+function coatForRun(run) {
+  if (!PARSED) return null;
+  return PARSED.job.coats.find(c => c.coatNumber === run["Coat Number"]) || null;
+}
+// The coats actually represented among a set of runs (order of first appearance).
+function scopeCoatsForRuns(runs) {
+  const seen = new Map();
+  runs.forEach(r => {
+    const c = coatForRun(r);
+    if (c && !seen.has(c.coatNumber)) seen.set(c.coatNumber, c);
+  });
+  return [...seen.values()];
+}
+// The runs for the current view: one coat's own runs, or every coat's runs
+// merged together (ACTIVE_COAT === "all") — same shape either way, so every
+// other function downstream (date grouping, flags, rendering) doesn't care.
+function getScopeRuns() {
+  if (!PARSED) return [];
+  if (ACTIVE_COAT === "all") return PARSED.job.coats.flatMap(c => c.runs);
+  const coat = PARSED.job.coats[ACTIVE_COAT];
+  return coat ? coat.runs : [];
+}
+function flagKey(r) { return (r["Coat Number"] || "?") + "|" + r["Run Number"]; }
+
+function filteredRuns() {
+  const runs = getScopeRuns();
+  if (!runs.length) return [];
+  const dateKey = $("dateSelect").value;
+  const includeFog = $("includeFog").value === "yes";
+  return runs
+    .filter(r => {
+      if (!runMatchesDateKey(r, dateKey)) return false;
+      if (!includeFog && isFogRun(r["Road Position"])) return false;
+      return true;
+    })
+    .sort(compareRunOrder);
+}
+
+// Flags computed across the FULL (unfiltered-by-fog) run sequence for a day,
+// in true run order, so a fog run or an excluded row doesn't break the
+// continuity check. When runs come from more than one coat (the "All coats"
+// view), this checks the sequence in the order it was actually sprayed —
+// which is what the tank dip numbers actually track, since Higgins sprays
+// both coats out of the same tank rather than keeping them separate. Checking
+// each coat in isolation (as the single-coat tabs still do) can misread a
+// perfectly normal handover to the other coat as a gap.
+function computeFlags(runs, dateKey) {
+  const seq = runs
+    .filter(r => runMatchesDateKey(r, dateKey))
+    .sort(compareRunOrder);
+  const flags = new Map(); // "coatNumber|runNumber" -> [{type, text}]
+  if (dateKey === UNRECORDED_KEY) {
+    // These runs don't share a real date/time, so a "tank changed between them"
+    // comparison would be meaningless — each just needs a manual look instead.
+    seq.forEach(r => flags.set(flagKey(r), [{
+      type: "manual",
+      text: "BJTS didn't record a time or temperature for this run — check it against the paper docket."
+    }]));
+    return flags;
+  }
+  for (let i = 1; i < seq.length; i++) {
+    const prev = seq[i - 1], cur = seq[i];
+    const sameCoat = prev["Coat Number"] === cur["Coat Number"];
+    // "runs 6→8" within one coat; "Coat 1 run 6 and Coat 2 run 8" when the
+    // handover crosses coats, since the run-number counters aren't comparable.
+    const between = sameCoat
+      ? `runs ${prev["Run Number"]}→${cur["Run Number"]}`
+      : `Coat ${prev["Coat Number"]} run ${prev["Run Number"]} and Coat ${cur["Coat Number"]} run ${cur["Run Number"]}`;
+    const list = [];
+    // A run-number gap only means something within the SAME coat's own
+    // counter — Coat 1 run 4 followed by Coat 2 run 2 isn't a skip, it's
+    // just the other coat's sequence.
+    if (sameCoat) {
+      const prevRun = toNum(prev["Run Number"], null);
+      const curRun = toNum(cur["Run Number"], null);
+      if (prevRun !== null && curRun !== null && curRun - prevRun > 1) {
+        const missing = curRun - prevRun - 1;
+        list.push({
+          type: "handspray",
+          text: `Run ${prevRun}→${curRun} skips ${missing} run number${missing > 1 ? "s" : ""} — could be hand-spray not in BJTS`
+        });
+      }
+    }
+    // When nothing unlogged happens between two consecutive dip readings they match
+    // exactly (seen throughout real BJTS data, including handovers between coats
+    // using the same tank); any gap between one run's finish dip and the next
+    // run's start dip means litres moved that this report doesn't explain.
+    // A rise means the tank was topped up; a drop means litres went somewhere — a
+    // section sprayed by hand — without the tank ever needing extra volume.
+    const prevFinish = toNum(prev["Tank Finish Volume"], null);
+    const curStart = toNum(cur["Tank Start Volume"], null);
+    if (prevFinish !== null && curStart !== null && Math.abs(curStart - prevFinish) > 3) {
+      const delta = curStart - prevFinish;
+      if (delta > 0) {
+        list.push({
+          type: "newload",
+          text: `Tank rose ${delta.toFixed(0)} L between ${between} — probably topped up / a new load`
+        });
+      } else {
+        list.push({
+          type: "handspray",
+          text: `Tank dropped ${Math.abs(delta).toFixed(0)} L between ${between} with no run logged for it — could be hand-spray not in BJTS`
+        });
+      }
+    }
+    if (list.length) flags.set(flagKey(cur), list);
+  }
+  return flags;
+}
+
+function allDateKeysForRuns(runs) {
+  const seen = new Set();
+  let unrecordedCount = 0;
+  runs.forEach(r => {
+    if (isPlaceholderDate(r["Date Started"])) { unrecordedCount++; return; }
+    const d = parseBjtsDate(r["Date Started"]);
+    if (d) seen.add(d.key);
+  });
+  const keys = [...seen].sort();
+  if (unrecordedCount) keys.push(UNRECORDED_KEY);
+  return { keys, unrecordedCount };
+}
+
+/* ============================== RENDERING ============================== */
+
+function renderCoatTabs() {
+  const wrap = $("coatTabs");
+  wrap.innerHTML = "";
+  const coats = PARSED.job.coats;
+  const canCombine = coats.length > 1 && jobHasRunTimes(PARSED.job);
+  // "All coats" merges every coat's runs into the true time-of-day order they
+  // were actually sprayed in — only meaningful when we have a real time field
+  // (the PDF path), and only when there's more than one coat to merge.
+  if (canCombine) {
+    const b = document.createElement("button");
+    b.className = "coat-tab" + (ACTIVE_COAT === "all" ? " active" : "");
+    b.type = "button";
+    const grades = [...new Set(coats.map(c => c.aggregateSize).filter(Boolean))].join(" + ");
+    const totalRuns = coats.reduce((a, c) => a + c.runs.length, 0);
+    b.textContent = `All coats${grades ? " · " + grades : ""} (${totalRuns} runs) — by time`;
+    b.addEventListener("click", () => { ACTIVE_COAT = "all"; onCoatChange(); });
+    wrap.appendChild(b);
+  }
+  coats.forEach((coat, idx) => {
+    const b = document.createElement("button");
+    b.className = "coat-tab" + (idx === ACTIVE_COAT ? " active" : "");
+    b.type = "button";
+    const grade = coat.aggregateSize ? ` · ${coat.aggregateSize}` : "";
+    b.textContent = `Coat ${coat.coatNumber || idx + 1}${grade} (${coat.runs.length} runs)`;
+    b.addEventListener("click", () => { ACTIVE_COAT = idx; onCoatChange(); });
+    wrap.appendChild(b);
+  });
+
+  const note = $("coatTabsNote");
+  if (canCombine) {
+    note.innerHTML = ACTIVE_COAT === "all"
+      ? "Showing every run from both coats in one sheet, in the order they were actually sprayed — Higgins sprays both coats out of the same tank, so this is also the most accurate view for the hand-spray/new-load flags below. Chip Grade is filled in per row from whichever coat it belongs to; edit any row by hand if it's wrong. Pick a single Coat tab instead if you'd rather fill one grade at a time (its flags may include false positives from the other coat's runs in between)."
+      : "You're viewing just this one coat — its hand-spray/new-load flags below may be false positives where a run from the other coat used the tank in between; switch to \"All coats\" for the accurate sequence. Which coat is actually the top or bottom seal on this job is still your call either way.";
+  } else {
+    note.textContent = "BJTS numbers these Coat 1 / Coat 2 — that's what picking a tab below means. Which one is actually the top or bottom coat on this job is your call; the tool doesn't guess it.";
+  }
+}
+
+function onCoatChange() {
+  renderCoatTabs();
+  const combined = ACTIVE_COAT === "all";
+  const dateSel = $("dateSelect");
+  dateSel.innerHTML = "";
+  const { keys, unrecordedCount } = allDateKeysForRuns(getScopeRuns());
+  keys.forEach(key => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = key === UNRECORDED_KEY
+      ? `⚠ No time recorded (${unrecordedCount} run${unrecordedCount > 1 ? "s" : ""}) — check manually`
+      : fmtDateKey(key, JOB_YEAR);
+    dateSel.appendChild(opt);
+  });
+  // default to the latest REAL day, not the unrecorded bucket if there is one
+  const realDayCount = keys.length - (unrecordedCount ? 1 : 0);
+  if (realDayCount > 0) dateSel.selectedIndex = realDayCount - 1;
+  else if (dateSel.options.length) dateSel.selectedIndex = dateSel.options.length - 1;
+  // Bulk grade only makes sense as a single value for one coat; in combined
+  // mode each row gets its own coat's grade instead (see rebuildRows).
+  $("bulkGrade").value = combined ? "" : (PARSED.job.coats[ACTIVE_COAT].aggregateSize || "");
+  rebuildRows();
+}
+
+function rebuildRows() {
+  const runs = filteredRuns();
+  const combined = ACTIVE_COAT === "all";
+  const dateKey = $("dateSelect").value;
+  const flags = computeFlags(getScopeRuns(), dateKey);
+  ROW_STATE = runs.map(r => {
+    const ownCoat = coatForRun(r);
+    return {
+      run: r,
+      include: !isFogRun(r["Road Position"]),
+      rp: "",
+      dir: "",
+      position: mapPosition(r["Road Position"]),
+      // Combined view: each row defaults to ITS OWN coat's grade, since rows
+      // alternate between coats. Single-coat view: the one bulk-apply value.
+      chipGrade: combined ? (ownCoat && ownCoat.aggregateSize || "") : ($("bulkGrade") ? $("bulkGrade").value : ""),
+      chipSource: $("bulkSource") ? $("bulkSource").value : "",
+      coatNumber: r["Coat Number"] || (ownCoat && ownCoat.coatNumber) || "",
+      flags: flags.get(flagKey(r)) || [],
+    };
+  });
+  renderRunTable();
+  renderHeaderFields();
+}
+
+function computeRow(st) {
+  const length = toNum(st.run["Length"], 0);
+  const area = toNum(st.run["Spray Area"], 0);
+  const litres = toNum(st.run["Hot Litres Used"], 0);
+  const width = length > 0 ? area / length : 0;
+  const actualRate = area > 0 ? litres / area : 0;
+  return { width, actualRate };
+}
+
+function renderRunTable() {
+  const tbody = $("runRows");
+  tbody.innerHTML = "";
+  const combined = ACTIVE_COAT === "all";
+  ROW_STATE.forEach((st, idx) => {
+    const tr = document.createElement("tr");
+    const fog = isFogRun(st.run["Road Position"]);
+    const anomTemp = toNum(st.run["Air Temperature"], 0) === -1;
+    if (!st.include) tr.classList.add("excluded");
+    if (fog || anomTemp || st.flags.length) tr.classList.add("anomaly");
+    const { width, actualRate } = computeRow(st);
+    const coatBadge = combined && st.coatNumber
+      ? ` <span class="pill ok" title="From Coat ${st.coatNumber}">C${st.coatNumber}</span>`
+      : "";
+    const FLAG_STYLE = {
+      handspray: { cls: "warn", label: "hand-spray?" },
+      newload: { cls: "info", label: "new load?" },
+      manual: { cls: "warn", label: "check manually" },
+    };
+    const flagsHtml = st.flags.map(f => {
+      const s = FLAG_STYLE[f.type] || { cls: "info", label: "check" };
+      return `<span class="pill ${s.cls}" title="${f.text.replace(/"/g,'&quot;')}">${s.label}</span>`;
+    }).join(" ");
+
+    const includedCount = ROW_STATE.slice(0, idx).filter(s => s.include).length;
+    const overCap = st.include && includedCount >= 15;
+
+    tr.innerHTML = `
+      <td><input type="checkbox" ${st.include ? "checked" : ""} data-k="include"></td>
+      <td>${st.run["Run Number"]}${coatBadge}${fog ? ' <span class="pill warn">fog</span>' : ""}${anomTemp ? ' <span class="pill warn">check</span>' : ""}</td>
+      <td><input type="text" class="narrow" value="${st.position}" data-k="position"></td>
+      <td><input type="text" class="rp" value="${st.rp}" data-k="rp" placeholder="RP"></td>
+      <td>
+        <select data-k="dir" style="width:60px; padding:4px;">
+          <option value="" ${st.dir===""?"selected":""}></option>
+          <option value="INC" ${st.dir==="INC"?"selected":""}>INC</option>
+          <option value="DEC" ${st.dir==="DEC"?"selected":""}>DEC</option>
+        </select>
+      </td>
+      <td>${fmt1(st.run["Length"])}</td>
+      <td class="computed">${fmt1(width)}</td>
+      <td>${fmt1(st.run["Spray Area"])}</td>
+      <td>${fmt0(st.run["Tank Start Volume"])}</td>
+      <td>${fmt0(st.run["Tank Finish Volume"])}</td>
+      <td>${fmt0(st.run["Hot Litres Used"])}</td>
+      <td>${fmt0(st.run["Hot Litres Used"])}</td>
+      <td>${fmt0(st.run["Spray Temperature"])}</td>
+      <td>${fmt2(st.run["Target Rate"])}</td>
+      <td class="computed">${fmt2(actualRate)}</td>
+      <td><input type="text" class="narrow" value="${st.chipGrade}" data-k="chipGrade"></td>
+      <td><input type="text" class="narrow" value="${st.chipSource}" data-k="chipSource"></td>
+      <td>${flagsHtml}</td>
+    `;
+    if (overCap) tr.style.boxShadow = "inset 3px 0 0 var(--danger)";
+
+    tr.querySelectorAll("[data-k]").forEach(el => {
+      const key = el.dataset.k;
+      const evt = el.tagName === "SELECT" ? "change" : (el.type === "checkbox" ? "change" : "input");
+      el.addEventListener(evt, () => {
+        st[key] = el.type === "checkbox" ? el.checked : el.value;
+        if (key === "include") renderRunTable();
+        updateTotals();
+      });
+    });
+
+    tbody.appendChild(tr);
+  });
+  updateTotals();
+  const includedTotal = ROW_STATE.filter(s => s.include).length;
+  const overCapacity = includedTotal > (V2_MAX_DATA_ROWS - BUFFER_ROWS);
+  const capNote = $("capNote");
+  capNote.hidden = !overCapacity;
+  if (overCapacity) {
+    capNote.textContent = `That's ${includedTotal} ticked rows, more than this sheet's ${V2_MAX_DATA_ROWS - BUFFER_ROWS}-row practical limit (it needs ${BUFFER_ROWS} rows spare for hand entries too) — only the first ${V2_MAX_DATA_ROWS - BUFFER_ROWS} will be written. Untick some, or split this into two sheets.`;
+  }
+}
+
+function fmt1(v){ const n = toNum(v, null); return n===null ? "–" : n.toFixed(1); }
+function fmt0(v){ const n = toNum(v, null); return n===null ? "–" : Math.round(n).toString(); }
+function fmt2(v){ const n = toNum(v, null); return n===null ? "–" : n.toFixed(2); }
+
+// Chip grades on the sheet, in coat order (Coat 1's grade first), so the
+// totals row always lists them the same way round.
+function gradesInOrder(rows) {
+  const seen = new Map();
+  rows.forEach((st, i) => {
+    const g = (st.chipGrade || "").trim();
+    if (!g) return;
+    const coat = parseInt(st.coatNumber, 10);
+    const key = isNaN(coat) ? 99 : coat;
+    if (!seen.has(g) || key < seen.get(g).coat) seen.set(g, { coat: key, first: seen.has(g) ? seen.get(g).first : i });
+  });
+  return [...seen.entries()].sort((a, b) => a[1].coat - b[1].coat || a[1].first - b[1].first).map(e => e[0]);
+}
+// The grade whose area counts as the final sealed area. Defaults to the last
+// coat sprayed (the top coat) — changeable here or in the sheet's dropdown.
+let FINAL_GRADE_CHOICE = null;
+function fT(T) { return 1.00946841 - 6.334e-4 * T + 1.457e-7 * T * T; }
+// EBC as a fraction: accepts "70", "70%", "0.70". Never assumed — blank = null.
+function readEBC() {
+  const raw = ($("ebcInput").value || "").replace("%", "").trim();
+  if (!raw) return null;
+  let v = parseFloat(raw);
+  if (!isFinite(v) || v <= 0) return null;
+  if (v > 1) v = v / 100;
+  return v > 0 && v <= 1 ? v : null;
+}
+function readDensity() {
+  const v = parseFloat(($("densityInput").value || "").trim());
+  return isFinite(v) && v > 0 ? v : null;
+}
+function currentFinalGrade(grades) {
+  if (!grades.length) return "";
+  if (FINAL_GRADE_CHOICE && grades.includes(FINAL_GRADE_CHOICE)) return FINAL_GRADE_CHOICE;
+  return grades[grades.length - 1];
+}
+
+function updateTotals() {
+  const included = ROW_STATE.filter(s => s.include).slice(0, V2_MAX_DATA_ROWS - BUFFER_ROWS);
+  const totalArea = included.reduce((a, s) => a + toNum(s.run["Spray Area"], 0), 0);
+  const totalLitres = included.reduce((a, s) => a + toNum(s.run["Hot Litres Used"], 0), 0);
+  const grades = gradesInOrder(included);
+  const finalGrade = currentFinalGrade(grades);
+  const finalArea = finalGrade
+    ? included.filter(s => (s.chipGrade || "").trim() === finalGrade).reduce((a, s) => a + toNum(s.run["Spray Area"], 0), 0)
+    : totalArea;
+  const avgRate = finalArea > 0 ? totalLitres / finalArea : 0;
+  $("totRows").textContent = included.length;
+  $("totArea").textContent = totalArea.toFixed(1);
+  $("totLitres").textContent = totalLitres.toFixed(0);
+  $("totFinalArea").textContent = finalArea.toFixed(1);
+  $("totRate").textContent = avgRate.toFixed(2);
+  const sel = $("finalGrade");
+  const wrap = $("finalGradeWrap");
+  wrap.hidden = grades.length < 2;
+  const optsKey = grades.join("\u0001");
+  if (sel.dataset.opts !== optsKey) {
+    sel.innerHTML = grades.map(g => `<option value="${g.replace(/"/g, "&quot;")}">${g.replace(/</g, "&lt;")}</option>`).join("");
+    sel.dataset.opts = optsKey;
+  }
+  if (finalGrade) sel.value = finalGrade;
+  updateResidual(included, finalArea, avgRate);
+}
+
+function updateResidual(included, finalArea, hotRate) {
+  const out = $("residOut");
+  const ebc = readEBC();
+  const dens = readDensity();
+  if (ebc === null) {
+    out.innerHTML = '<span style="color:var(--amber)">Enter the EBC % from the batch docket / COA to calculate — no EBC is assumed.</span>';
+    return;
+  }
+  let residL = 0, litres = 0, tempL = 0;
+  included.forEach(s => {
+    const L = toNum(s.run["Hot Litres Used"], 0);
+    const T = toNum(s.run["Spray Temperature"], null);
+    if (!L || T === null) return;
+    residL += L * ebc * fT(T);
+    litres += L; tempL += L * T;
+  });
+  if (!litres) { out.textContent = "No runs with litres and a spray temperature to calculate from."; return; }
+  const Tbar = tempL / litres;
+  const f = fT(Tbar);
+  const R = finalArea > 0 ? residL / finalArea : 0;
+  const tonnes = dens ? residL / dens : null;
+  out.innerHTML =
+    `f(T) at litre-weighted spray temp T = ${Tbar.toFixed(1)} °C:<br>` +
+    `&nbsp;&nbsp;1.00946841 − 6.334×10⁻⁴ × ${Tbar.toFixed(1)} + 1.457×10⁻⁷ × ${Tbar.toFixed(1)}² = <strong>${f.toFixed(5)}</strong><br>` +
+    `R = hot rate ${hotRate.toFixed(3)} L/m² × EBC ${(ebc * 100).toFixed(1)}% × ${f.toFixed(5)} ≈ <strong>${R.toFixed(3)} L/m²</strong> residual @ 15°C<br>` +
+    `<span style="color:var(--ink-muted)">(sheet works it per run with each run's own temperature; day figure = Σ residual litres ${residL.toFixed(0)} L ÷ final area ${finalArea.toFixed(1)} m²)</span><br>` +
+    (tonnes !== null
+      ? `Payment tonnage = area × R ÷ density = ${residL.toFixed(0)} L ÷ ${dens} L/t = <strong>${tonnes.toFixed(3)} t</strong>`
+      : `<span style="color:var(--amber)">Enter a binder density to get tonnage.</span>`);
+}
+
+/* ------------------------- header fields ------------------------- */
+
+const HEADER_DEFS = [
+  { id: "hf_date", label: "Date", derived: true, type: "text", get: () => {
+      const key = $("dateSelect") ? $("dateSelect").value : "";
+      if (!key) return "";
+      return key === UNRECORDED_KEY ? "— not recorded, check manually —" : fmtDateKey(key, JOB_YEAR);
+  }, readonly: true },
+  { id: "hf_contract", label: "Contract", derived: true, get: (job) => `${job.contractNumber||""} - ${job.contractDescription||""}` },
+  { id: "hf_site", label: "Site Name", derived: true, get: (job) => job.site || "" },
+  { id: "hf_siteno", label: "Site No.", manual: true },
+  { id: "hf_seal", label: "Seal Type", derived: true, get: (job) => job.treatmentType || "" },
+  { id: "hf_binder", label: "Binder Type", derived: true, get: (job, coats) => [...new Set(coats.map(c => c.binderType).filter(Boolean))].join(" / ") },
+  { id: "hf_kero", label: "Kerosene p.p.h.", manual: true },
+  { id: "hf_ago", label: "AGO p.p.h.", manual: true },
+  { id: "hf_adhesion", label: "Adhesion Agent p.p.h.", manual: true },
+  { id: "hf_jobno", label: "Job no.", derived: true, get: (job) => job.jobNumber || "" },
+  { id: "hf_docket", label: "Docket No.", manual: true },
+  { id: "hf_distributor", label: "Distributor no.", derived: true, get: (job, coats, runs) => (runs[0] && runs[0].run["Sprayer"]) || "5096" },
+  { id: "hf_operator", label: "Sprayer operator", manual: true },
+  { id: "hf_weather", label: "Weather", manual: true },
+  { id: "hf_airtemp", label: "Air temp", derived: true, get: (job, coats, runs) => avgField(runs, "Air Temperature") },
+  { id: "hf_pavetemp", label: "Pavement temp", derived: true, get: (job, coats, runs) => avgField(runs, "Road Temperature") },
+];
+
+function avgField(runs, field) {
+  const vals = runs.map(s => toNum(s.run[field], null)).filter(v => v !== null && v !== -1);
+  if (!vals.length) return "";
+  return (vals.reduce((a,b)=>a+b,0) / vals.length).toFixed(1);
+}
+
+function renderHeaderFields() {
+  const wrap = $("headerFields");
+  wrap.innerHTML = "";
+  const job = PARSED.job;
+  // In combined ("all coats") mode there isn't one coat to derive Binder
+  // Type etc. from — use every coat actually represented among the rows
+  // currently shown, so a coat with no runs on this particular day doesn't
+  // get pulled in.
+  const coats = ACTIVE_COAT === "all"
+    ? scopeCoatsForRuns(ROW_STATE.map(s => s.run))
+    : [job.coats[ACTIVE_COAT]].filter(Boolean);
+  const runs = ROW_STATE;
+  HEADER_DEFS.forEach(def => {
+    const field = document.createElement("div");
+    field.className = "field " + (def.derived ? "derived" : "manual");
+    const label = document.createElement("label");
+    label.textContent = def.label;
+    label.htmlFor = def.id;
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = def.id;
+    if (def.get) input.value = def.get(job, coats, runs);
+    if (def.readonly) input.readOnly = true;
+    field.appendChild(label);
+    field.appendChild(input);
+    wrap.appendChild(field);
+  });
+  $("jobSummaryLine").value = `${job.jobNumber || "—"}${job.dateJobCompleted ? " · completed " + job.dateJobCompleted : ""}`;
+  $("contractSummaryLine").value = `${job.contractNumber || "—"} — ${job.contractDescription || ""}`;
+}
+
+/* ============================== PARSE FLOW ============================== */
+
+function activateParsedJob(job, sourceLabel) {
+  const status = $("parseStatus");
+  if (!job.coats.length) {
+    status.className = "status-line err";
+    status.textContent = sourceLabel === "pdf"
+      ? "Couldn't find any runs in that PDF — make sure it's the BJTS \"Print View\" Job Summary export."
+      : "Couldn't find any run tables in that paste — make sure you selected the whole report including the \"Sprayer / Run Number / ...\" table headers.";
+    return;
+  }
+  PARSED = { job };
+  // Default to the merged, true-time-order view when we can build one (real
+  // per-run times, more than one coat) — it's the accurate sequence and the
+  // single-coat tabs are still there for anyone who wants one grade at a time.
+  ACTIVE_COAT = (job.coats.length > 1 && jobHasRunTimes(job)) ? "all" : 0;
+  JOB_YEAR = inferJobYear(job);
+  const totalRuns = job.coats.reduce((a, c) => a + c.runs.length, 0);
+  status.className = "status-line ok";
+  status.textContent = `Parsed job ${job.jobNumber || "?"} — ${job.coats.length} coat(s), ${totalRuns} runs found.`;
+  const orderNote = $("runOrderNote");
+  orderNote.textContent = jobHasRunTimes(job)
+    ? "Runs are ordered by the actual time each one started, from the PDF. RP, Direction, Chip Grade and Source aren't in BJTS's data — add them per row, or use the \"apply to all\" boxes below for Chip Grade/Source if one applies to the whole day."
+    : "Runs are ordered by Run Number — the sequence BJTS logged them in, which is the order he actually sprayed, since this source doesn't carry a time-of-day field. RP, Direction, Chip Grade and Source aren't in BJTS's data — add them per row, or use the \"apply to all\" boxes below for Chip Grade/Source if one applies to the whole day.";
+  $("afterParse").hidden = false;
+  onCoatChange();
+  $("afterParse").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function runParse(text) {
+  const status = $("parseStatus");
+  try {
+    const result = parseReport(text);
+    activateParsedJob(result.job, "paste");
+  } catch (e) {
+    status.className = "status-line err";
+    status.textContent = "Couldn't parse that paste (" + e.message + "). Try pasting the full report again.";
+  }
+}
+
+$("parseBtn").addEventListener("click", () => runParse($("pasteBox").value));
+$("sampleBtn").addEventListener("click", () => {
+  $("pasteDetails").open = true;
+  $("pasteBox").value = SAMPLE_TEXT;
+  runParse(SAMPLE_TEXT);
+});
+$("pdfInput").addEventListener("change", async () => {
+  const file = $("pdfInput").files && $("pdfInput").files[0];
+  if (!file) return;
+  $("pdfFileName").textContent = file.name;
+  const status = $("parseStatus");
+  status.className = "status-line";
+  status.textContent = "Reading PDF…";
+  try {
+    const job = await parsePdfFile(file);
+    activateParsedJob(job, "pdf");
+  } catch (e) {
+    status.className = "status-line err";
+    status.textContent = "Couldn't read that PDF (" + (e.message || e) + "). Make sure it's the BJTS Job Summary Print View export.";
+  }
+});
+$("dateSelect").addEventListener("change", rebuildRows);
+$("includeFog").addEventListener("change", rebuildRows);
+["ebcInput", "densityInput"].forEach(id => $(id).addEventListener("input", () => updateTotals()));
+
+$("finalGrade").addEventListener("change", e => {
+  FINAL_GRADE_CHOICE = e.target.value;
+  updateTotals();
+});
+
+$("applyGrade").addEventListener("click", () => {
+  const v = $("bulkGrade").value;
+  ROW_STATE.forEach(s => s.chipGrade = v);
+  renderRunTable();
+});
+$("applySource").addEventListener("click", () => {
+  const v = $("bulkSource").value;
+  ROW_STATE.forEach(s => s.chipSource = v);
+  renderRunTable();
+});
+
+/* ============================== XLSX PATCHING ============================== */
+
+function xmlEscape(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/\r?\n/g,"&#10;");
+}
+function toExcelSerial(y, m, d) {
+  const epoch = Date.UTC(1899, 11, 30);
+  const ms = Date.UTC(y, m - 1, d);
+  return Math.round((ms - epoch) / 86400000);
+}
+// A run's "Time Started" (e.g. "10:26:04") as an Excel time serial (fraction
+// of a day) for the hidden TIME column — null when the source has no time
+// (the pasted-webpage path).
+function timeToExcelSerial(timeStr) {
+  const secs = timeToSeconds(timeStr);
+  return secs === null ? null : secs / 86400;
+}
+// Marks a template row hidden (not deleted) by injecting hidden="1" into its
+// <row r="N" ...> tag — used to collapse the pre-authored 60-row block down
+// to just what a given day needs, without disturbing the totals/comments
+// rows fixed below it or any row's own formulas/formatting.
+function setRowHeight(xml, rowNum, ht) {
+  const re = new RegExp('<row r="' + rowNum + '"([^>]*)>');
+  return xml.replace(re, (m, attrs) => {
+    attrs = attrs.replace(/\s*ht="[^"]*"/, "").replace(/\s*customHeight="[^"]*"/, "");
+    return '<row r="' + rowNum + '"' + attrs + ' ht="' + ht + '" customHeight="1">';
+  });
+}
+function hideRow(xml, rowNum) {
+  const marker = '<row r="' + rowNum + '"';
+  const idx = xml.indexOf(marker);
+  if (idx === -1) return xml;
+  const insertAt = idx + marker.length;
+  return xml.slice(0, insertAt) + ' hidden="1"' + xml.slice(insertAt);
+}
+function setCell(xml, ref, value) {
+  if (value === null || value === undefined) return xml;
+  const idx = xml.indexOf('<c r="' + ref + '"');
+  if (idx === -1) throw new Error("Cell " + ref + " not found in template — the template file may not match what this tool expects.");
+  const tagEnd = xml.indexOf(">", idx);
+  const selfClosing = xml[tagEnd - 1] === "/";
+  const openTag = xml.slice(idx, tagEnd + 1);
+  const sMatch = openTag.match(/\ss="(\d+)"/);
+  const sAttr = sMatch ? ' s="' + sMatch[1] + '"' : "";
+  let closeIdx;
+  if (selfClosing) {
+    closeIdx = tagEnd + 1;
+  } else {
+    closeIdx = xml.indexOf("</c>", tagEnd) + 4;
+  }
+  let newCell;
+  if (typeof value === "object" && value.formula !== undefined) {
+    // No cached <v> — fullCalcOnLoad="1" (set above) makes Excel compute it
+    // as soon as the file opens, same as every other formula cell here.
+    newCell = '<c r="' + ref + '"' + sAttr + '><f>' + xmlEscape(value.formula) + '</f></c>';
+  } else if (typeof value === "object" && value.serial !== undefined) {
+    newCell = '<c r="' + ref + '"' + sAttr + '><v>' + value.serial + '</v></c>';
+  } else if (typeof value === "number") {
+    newCell = '<c r="' + ref + '"' + sAttr + '><v>' + value + '</v></c>';
+  } else {
+    const str = String(value);
+    if (str === "") {
+      newCell = '<c r="' + ref + '"' + sAttr + '/>';
+    } else {
+      newCell = '<c r="' + ref + '"' + sAttr + ' t="inlineStr"><is><t xml:space="preserve">' + xmlEscape(str) + '</t></is></c>';
+    }
+  }
+  return xml.slice(0, idx) + newCell + xml.slice(closeIdx);
+}
+
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+function buildWorkbook() {
+  const zip = fflate.unzipSync(base64ToBytes(TEMPLATE_B64));
+  const dec = new TextDecoder();
+  const enc = new TextEncoder();
+  let xml = dec.decode(zip["xl/worksheets/sheet1.xml"]);
+
+  let wbXml = dec.decode(zip["xl/workbook.xml"]);
+  wbXml = wbXml.replace(/<calcPr([^/]*)\/>/, (m, attrs) => {
+    attrs = attrs.replace(/\s*fullCalcOnLoad="[^"]*"/, "");
+    return "<calcPr" + attrs + ' fullCalcOnLoad="1"/>';
+  });
+  zip["xl/workbook.xml"] = enc.encode(wbXml);
+
+  if (zip["xl/calcChain.xml"]) {
+    delete zip["xl/calcChain.xml"];
+    let ct = dec.decode(zip["[Content_Types].xml"]);
+    ct = ct.replace(/<Override[^>]*calcChain[^>]*\/>/, "");
+    zip["[Content_Types].xml"] = enc.encode(ct);
+    let rels = dec.decode(zip["xl/_rels/workbook.xml.rels"]);
+    rels = rels.replace(/<Relationship[^>]*calcChain[^>]*\/>/, "");
+    zip["xl/_rels/workbook.xml.rels"] = enc.encode(rels);
+  }
+
+  const job = PARSED.job;
+  const MAX_WRITABLE = V2_MAX_DATA_ROWS - BUFFER_ROWS;
+  const included = ROW_STATE.filter(s => s.include).slice(0, MAX_WRITABLE);
+  const dateKey = $("dateSelect").value;
+  if (dateKey !== UNRECORDED_KEY) {
+    const [dd, mo] = dateKey.split("/");
+    xml = setCell(xml, "C3", { serial: toExcelSerial(JOB_YEAR, +mo, +dd) });
+  }
+  xml = setCell(xml, "C4", val("hf_contract"));
+  xml = setCell(xml, "C5", val("hf_site"));
+  xml = setCell(xml, "C6", val("hf_siteno"));
+  xml = setCell(xml, "C7", val("hf_seal"));
+  xml = setCell(xml, "H4", val("hf_binder"));
+  xml = setCell(xml, "H5", val("hf_kero"));
+  xml = setCell(xml, "H6", val("hf_ago"));
+  xml = setCell(xml, "H7", val("hf_adhesion"));
+  xml = setCell(xml, "M3", val("hf_jobno"));
+  xml = setCell(xml, "Q3", val("hf_docket"));
+  const distNum = toNum(val("hf_distributor"), null);
+  xml = setCell(xml, "M4", distNum !== null ? distNum : val("hf_distributor"));
+  xml = setCell(xml, "M5", val("hf_operator"));
+  xml = setCell(xml, "M6", val("hf_weather"));
+  const airT = toNum(val("hf_airtemp"), null);
+  if (airT !== null) xml = setCell(xml, "M7", airT);
+  const paveT = toNum(val("hf_pavetemp"), null);
+  if (paveT !== null) xml = setCell(xml, "Q7", paveT);
+
+  const flaggedNotes = included
+    .filter(st => st.flags && st.flags.length)
+    .map(st => (ACTIVE_COAT === "all" ? "Coat " + st.coatNumber + " run " + st.run["Run Number"] : "Run " + st.run["Run Number"]) + ": " + st.flags.map(f => f.text).join("; "));
+  const commentsText = "Generated " + new Date().toLocaleString() + " by the BJTS Spraysheet Filler." +
+    (flaggedNotes.length ? "\nFlagged by the import — check before signing off:\n" + flaggedNotes.join("\n") : "");
+  xml = setCell(xml, "A" + V2_COMMENTS_ROW, commentsText);
+  // Grow the comments box (3 merged rows) to fit the flag list, so nothing
+  // gets cut off at the bottom of the box.
+  const commentLines = commentsText.split("\n").reduce((n, line) => n + 1 + Math.floor(line.length / 160), 0);
+  const perRow = Math.max(16, Math.ceil((commentLines * 15 + 6) / 3));
+  for (let r = V2_COMMENTS_ROW; r < V2_COMMENTS_ROW + 3; r++) xml = setRowHeight(xml, r, perRow);
+
+  included.forEach((st, i) => {
+    const row = V2_FIRST_ROW + i;
+    xml = setCell(xml, "A" + row, st.rp);
+    xml = setCell(xml, "B" + row, st.dir);
+    xml = setCell(xml, "C" + row, st.position);
+    xml = setCell(xml, "D" + row, toNum(st.run["Length"], 0));
+    xml = setCell(xml, "F" + row, toNum(st.run["Spray Area"], 0));
+    xml = setCell(xml, "G" + row, toNum(st.run["Tank Start Volume"], 0));
+    xml = setCell(xml, "H" + row, toNum(st.run["Tank Finish Volume"], 0));
+    xml = setCell(xml, "I" + row, toNum(st.run["Hot Litres Used"], 0));
+    xml = setCell(xml, "J" + row, toNum(st.run["Hot Litres Used"], 0));
+    xml = setCell(xml, "K" + row, toNum(st.run["Spray Temperature"], 0));
+    xml = setCell(xml, "L" + row, toNum(st.run["Target Rate"], 0));
+    xml = setCell(xml, "Q" + row, st.chipGrade || "");
+    xml = setCell(xml, "R" + row, st.chipSource || "");
+    // Hidden reference columns: real time-of-day (when the source has one)
+    // and this row's own flag text, if any — same info as the comments box
+    // summary above, but attached to its actual row for anyone who unhides
+    // the columns later.
+    const timeSerial = timeToExcelSerial(st.run["Time Started"]);
+    if (timeSerial !== null) xml = setCell(xml, "S" + row, { serial: timeSerial });
+    if (st.flags && st.flags.length) xml = setCell(xml, "T" + row, st.flags.map(f => f.text).join("; "));
+  });
+
+  // Total Area: a single-grade day (single coat, or a combined day that
+  // happens to only have one grade in it) keeps the template's one plain
+  // "Total Area" — SUM of everything, which is correct since it's all the
+  // same chip. A genuine two-coat/two-grade day gets two separate area
+  // totals instead, one per grade, rather than adding two different chip
+  // grades' areas into one number that means nothing.
+  const gradesPresent = gradesInOrder(included);
+  const qRange = "Q" + V2_FIRST_ROW + ":Q" + V2_LAST_ROW;
+  const fRange = "F" + V2_FIRST_ROW + ":F" + V2_LAST_ROW;
+  const excelStr = s => '"' + String(s).replace(/"/g, '""') + '"';
+  if (gradesPresent.length >= 2) {
+    const [gradeA, gradeB] = gradesPresent;
+    xml = setCell(xml, "E" + V2_TOTALS_ROW, "Area (" + gradeA + "):");
+    xml = setCell(xml, "G" + V2_TOTALS_ROW, { formula: "SUMIF(" + qRange + "," + excelStr(gradeA) + "," + fRange + ")" });
+    xml = setCell(xml, "H" + V2_TOTALS_ROW, "Area (" + gradeB + "):");
+    xml = setCell(xml, "J" + V2_TOTALS_ROW, { formula: "SUMIF(" + qRange + "," + excelStr(gradeB) + "," + fRange + ")" });
+  }
+  // Hidden dropdown list for the Final grade cell, then the chosen grade.
+  // Final Area (P72) and Actual Spray Rate (J73 = Total Bitumen / Final Area)
+  // are template formulas keyed off that cell, so changing the dropdown in
+  // Excel re-works both.
+  if (gradesPresent[0]) xml = setCell(xml, "S" + V2_TOTALS_ROW, gradesPresent[0]);
+  if (gradesPresent[1]) xml = setCell(xml, "T" + V2_TOTALS_ROW, gradesPresent[1]);
+  const finalGrade = currentFinalGrade(gradesPresent);
+  if (finalGrade) xml = setCell(xml, "M" + V2_TOTALS_ROW, finalGrade);
+  // Residual binder inputs for the hidden U:X columns
+  const ebcVal = readEBC();
+  if (ebcVal !== null) xml = setCell(xml, "V3", ebcVal);
+  const densVal = readDensity();
+  if (densVal !== null) xml = setCell(xml, "V4", densVal);
+
+  // Hide whichever pre-authored rows this day doesn't need (data rows plus
+  // the 5-row hand-fill buffer) so the sheet looks right-sized on screen and
+  // when printed — the totals/comments rows below stay exactly where they
+  // are and simply follow on directly, since Excel skips hidden rows.
+  const visibleCount = Math.min(included.length + BUFFER_ROWS, V2_MAX_DATA_ROWS);
+  const firstHiddenRow = V2_FIRST_ROW + visibleCount;
+  for (let r = firstHiddenRow; r <= V2_LAST_ROW; r++) xml = hideRow(xml, r);
+
+  zip["xl/worksheets/sheet1.xml"] = enc.encode(xml);
+  return fflate.zipSync(zip, { level: 6 });
+}
+
+function val(id) { const el = $(id); return el ? el.value : ""; }
+
+$("generateBtn").addEventListener("click", async () => {
+  const status = $("genStatus");
+  if (!PARSED) return;
+  const included = ROW_STATE.filter(s => s.include);
+  if (!included.length) {
+    status.className = "status-line err";
+    status.textContent = "No runs are ticked for this coat/day — tick at least one row first.";
+    return;
+  }
+  status.className = "status-line";
+  status.textContent = "Building workbook…";
+  try {
+    const bytes = buildWorkbook();
+    const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const job = PARSED.job;
+    const coatLabel = ACTIVE_COAT === "all" ? "AllCoats" : "Coat" + (job.coats[ACTIVE_COAT].coatNumber || (ACTIVE_COAT + 1));
+    const rawDateKey = $("dateSelect").value;
+    const dateKey = rawDateKey === UNRECORDED_KEY ? "unrecorded" : rawDateKey.replace("/", "-");
+    const fname = `Spraysheet_${job.jobNumber || "job"}_${coatLabel}_${dateKey}.xlsx`;
+
+    const downloads = await (window.claude && window.claude.use ? window.claude.use("downloads") : Promise.resolve(null));
+    if (!downloads) {
+      // Plain browser (e.g. the GitHub Pages copy): ordinary file download.
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = fname;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      status.className = "status-line ok";
+      status.textContent = "Downloaded " + fname + " — check your downloads.";
+      return;
+    }
+    const res = await downloads.save({ filename: fname, data: blob });
+    status.className = "status-line ok";
+    status.textContent = res.status === "saved" ? "Saved — check your downloads." : "Sent.";
+  } catch (e) {
+    status.className = "status-line err";
+    if (e && e.code) {
+      const msgs = {
+        declined: "Save was declined.",
+        rejected_extension: "This file type isn't accepted here.",
+        too_large: "That file is too large to save here.",
+        rate_limited: "A save prompt is already open — try again in a moment.",
+      };
+      status.textContent = msgs[e.code] || ("Couldn't save (" + e.code + ").");
+    } else {
+      status.textContent = "Couldn't build the file: " + (e.message || e);
+    }
+  }
+});
+
+/* ============================== SAMPLE DATA ============================== */
+const SAMPLE_TEXT = "";
+
+})();
+</script>
+
+</body>
+</html>
